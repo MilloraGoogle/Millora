@@ -1,9 +1,13 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Millora</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
 :root {
   --bg: #ffffff;
@@ -35,8 +39,12 @@ header {
   justify-content: space-between;
   align-items: center;
   padding: 22px clamp(18px, 5vw, 64px);
+  gap: 10px;
 }
-.brand { font-size: 23px; font-weight: 750; letter-spacing: -.7px; }
+.brand {
+  font-size: 23px;
+  font-weight: 750;
+}
 .brand span, .logo span { color: var(--accent); }
 button {
   border: 0;
@@ -45,7 +53,7 @@ button {
   font-size: 14px;
   cursor: pointer;
 }
-#themeButton {
+#themeButton, #accountButton {
   color: var(--text);
   background: var(--surface);
   border: 1px solid var(--border);
@@ -59,7 +67,10 @@ main {
   font-weight: 800;
   letter-spacing: -5px;
 }
-.subtitle { color: var(--muted); margin: 12px 0 34px; }
+.subtitle {
+  color: var(--muted);
+  margin: 12px 0 34px;
+}
 .searchbox {
   display: flex;
   align-items: center;
@@ -82,73 +93,261 @@ input {
   color: var(--text);
   font-size: 16px;
 }
-#searchButton {
+#searchButton, .primary {
   color: white;
   background: var(--accent);
   font-weight: 650;
 }
-.hint { color: var(--muted); font-size: 13px; margin-top: 22px; }
+.hint {
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 22px;
+}
 footer {
   text-align: center;
   color: var(--muted);
   font-size: 12px;
   padding: 40px 18px;
 }
+#accountPanel {
+  display: none;
+  width: min(390px, 100%);
+  margin: 35px auto 0;
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+  text-align: left;
+}
+#accountPanel.open { display: block; }
+#accountPanel h2 { margin-top: 0; }
+#accountPanel label {
+  display: block;
+  margin: 14px 0 6px;
+  font-size: 13px;
+}
+#accountPanel input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+}
+.account-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+.account-actions button { flex: 1; }
+.secondary {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+#status {
+  font-size: 13px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+#logoutButton { display: none; }
 @media (max-width: 480px) {
   main { padding-top: 75px; }
   .logo { letter-spacing: -3px; }
-  .searchbox { padding-left: 14px; }
-  #searchButton { padding: 11px 14px; }
+  header { flex-wrap: wrap; }
 }
 </style>
 </head>
+
 <body>
+
 <header>
   <div class="brand">Mill<span>ora</span></div>
-  <button id="themeButton" type="button">☾ Dark mode</button>
+  <div>
+    <button id="accountButton">Log in / Sign up</button>
+    <button id="themeButton">☾ Dark mode</button>
+  </div>
 </header>
 
 <main>
   <div class="logo">Mill<span>ora</span></div>
   <div class="subtitle">Search the world. Discover something new.</div>
 
-  <!-- The browser submits the search directly to Google. -->
-  <form class="searchbox" action="https://www.google.com/search" method="GET">
-    <input
-      type="search"
-      name="q"
-      placeholder="Search anything..."
-      aria-label="Search Google"
-      autocomplete="off"
-      required>
+  <form class="searchbox"
+        action="https://www.google.com/search"
+        method="GET">
+    <input type="search" name="q"
+           placeholder="Search anything..."
+           aria-label="Search Google"
+           required>
     <button id="searchButton" type="submit">Search</button>
   </form>
 
-  <div class="hint">Press Enter or click Search to search with Google.</div>
+  <div class="hint">
+    Press Enter or click Search to search with Google.
+  </div>
+
+  <section id="accountPanel">
+    <h2 id="accountHeading">Your Millora account</h2>
+    <p id="accountDescription">Create an account or log in.</p>
+
+    <div id="authFields">
+      <label for="email">Email</label>
+      <input id="email" type="email" placeholder="Your email">
+
+      <label for="password">Password</label>
+      <input id="password" type="password"
+             placeholder="At least 6 characters">
+
+      <div class="account-actions">
+        <button class="primary" id="signupButton" type="button">
+          Sign up
+        </button>
+        <button class="secondary" id="loginButton" type="button">
+          Log in
+        </button>
+      </div>
+    </div>
+
+    <button id="logoutButton" class="secondary" type="button">
+      Log out
+    </button>
+
+    <p id="status" role="status"></p>
+  </section>
 </main>
 
 <footer>Millora · Your search starts here</footer>
 
 <script>
+// DARK AND LIGHT MODE
 const themeButton = document.getElementById("themeButton");
 
-function setTheme(isDark) {
-  document.body.classList.toggle("dark", isDark);
-  themeButton.textContent = isDark ? "☀ Light mode" : "☾ Dark mode";
-  try {
-    localStorage.setItem("millora-theme", isDark ? "dark" : "light");
-  } catch (error) {}
+function setTheme(dark) {
+  document.body.classList.toggle("dark", dark);
+  themeButton.textContent = dark ? "☀ Light mode" : "☾ Dark mode";
+  localStorage.setItem("millora-theme", dark ? "dark" : "light");
 }
 
-try {
-  setTheme(localStorage.getItem("millora-theme") === "dark");
-} catch (error) {
-  setTheme(false);
-}
+setTheme(localStorage.getItem("millora-theme") === "dark");
 
-themeButton.addEventListener("click", function () {
+themeButton.addEventListener("click", () => {
   setTheme(!document.body.classList.contains("dark"));
 });
+
+// ACCOUNT PANEL
+const panel = document.getElementById("accountPanel");
+
+document.getElementById("accountButton").onclick = () => {
+  panel.classList.toggle("open");
+};
+
+// SUPABASE CONNECTION
+const SUPABASE_URL =
+  "https://xkvbhfjezmxipbqynezs.supabase.co";
+
+const SUPABASE_PUBLIC_KEY =
+  "PASTE_YOUR_PUBLISHABLE_KEY_HERE";
+
+const status = document.getElementById("status");
+const authFields = document.getElementById("authFields");
+const logoutButton = document.getElementById("logoutButton");
+
+const supabase = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLIC_KEY
+);
+
+function showUser(user) {
+  if (user) {
+    document.getElementById("accountHeading").textContent =
+      "You're logged in!";
+    document.getElementById("accountDescription").textContent =
+      user.email;
+    authFields.style.display = "none";
+    logoutButton.style.display = "block";
+    document.getElementById("accountButton").textContent =
+      "My account";
+  } else {
+    document.getElementById("accountHeading").textContent =
+      "Your Millora account";
+    document.getElementById("accountDescription").textContent =
+      "Create an account or log in.";
+    authFields.style.display = "block";
+    logoutButton.style.display = "none";
+    document.getElementById("accountButton").textContent =
+      "Log in / Sign up";
+  }
+}
+
+function getCredentials() {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+
+  if (!email || !password) {
+    status.textContent = "Enter your email and password.";
+    return null;
+  }
+
+  if (password.length < 6) {
+    status.textContent = "Password must be at least 6 characters.";
+    return null;
+  }
+
+  return { email, password };
+}
+
+// CREATE ACCOUNT
+document.getElementById("signupButton").onclick = async () => {
+  const credentials = getCredentials();
+  if (!credentials) return;
+
+  status.textContent = "Creating account...";
+
+  const { data, error } = await supabase.auth.signUp(credentials);
+
+  if (error) {
+    status.textContent = error.message;
+  } else if (data.session) {
+    status.textContent = "Account created!";
+  } else {
+    status.textContent =
+      "Account created! Check your email for confirmation.";
+  }
+};
+
+// LOG IN
+document.getElementById("loginButton").onclick = async () => {
+  const credentials = getCredentials();
+  if (!credentials) return;
+
+  status.textContent = "Logging in...";
+
+  const { error } =
+    await supabase.auth.signInWithPassword(credentials);
+
+  status.textContent = error
+    ? error.message
+    : "Logged in successfully!";
+};
+
+// LOG OUT
+logoutButton.onclick = async () => {
+  const { error } = await supabase.auth.signOut();
+  status.textContent = error ? error.message : "Logged out.";
+};
+
+// CHECK EXISTING LOGIN
+async function checkSession() {
+  const { data } = await supabase.auth.getSession();
+  showUser(data.session?.user ?? null);
+}
+
+checkSession();
+
+supabase.auth.onAuthStateChange((_event, session) => {
+  showUser(session?.user ?? null);
+});
 </script>
+
 </body>
 </html>
