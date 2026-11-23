@@ -6,6 +6,30 @@
 <title>Millora</title>
 
 <style>
+  .browser-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: var(--card-bg, #f1f1f1);
+  border-bottom: 1px solid #ccc;
+}
+
+.browser-bar input {
+  flex: 1;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #aaa;
+  border-radius: 20px;
+  font-size: 15px;
+}
+
+.browser-bar button {
+  padding: 10px 14px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
 :root {
   --bg: #fff;
   --text: #202124;
@@ -152,6 +176,20 @@ footer {
 </head>
 
 <body>
+  <nav class="browser-bar">
+  <button id="backButton" type="button" title="Back">←</button>
+  <button id="forwardButton" type="button" title="Forward">→</button>
+  <button id="refreshButton" type="button" title="Refresh">⟳</button>
+
+  <input
+    id="urlBar"
+    type="text"
+    placeholder="Enter a Millora URL..."
+    aria-label="Address bar"
+  >
+
+  <button id="goButton" type="button">Go</button>
+</nav>
 
 <header>
   <div class="brand">Mill<span>ora</span></div>
