@@ -203,6 +203,20 @@ footer {
 
 <!-- THEME AND PANEL BUTTONS -->
 <script>
+  async function goToMilloraURL(input) {
+  const url = input.trim();
+
+  if (!url.startsWith("millora://")) {
+    window.location.href =
+      "https://www.google.com/search?q=" +
+      encodeURIComponent(url);
+    return;
+  }
+
+  const name = url.slice("millora://".length);
+
+  // URL registry lookup goes here next.
+}
 const themeButton = document.getElementById("themeButton");
 
 function setTheme(dark) {
