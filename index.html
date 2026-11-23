@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -38,7 +37,7 @@ body {
   transition: background .2s, color .2s;
 }
 
-/* BROWSER NAVIGATION BAR */
+/* BROWSER BAR */
 .browser-bar {
   display: flex;
   align-items: center;
@@ -66,16 +65,6 @@ body {
   color: var(--muted);
   opacity: 1;
 }
-  flex: 1;
-  min-width: 0;
-  padding: 12px 16px;
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  background: var(--bg);
-  color: var(--text);
-  font-size: 15px;
-  outline: none;
-}
 
 .browser-bar input:focus {
   border-color: var(--accent);
@@ -93,6 +82,81 @@ body {
 
 .browser-bar button:hover {
   border-color: var(--accent);
+}
+
+/* CREATE WEBSITE BUTTON */
+.sites-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 5px 18px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.sites-toolbar button {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+/* WEBSITE CREATOR */
+.website-creator {
+  width: min(420px, calc(100% - 30px));
+  margin: 12px 18px 12px auto;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.website-creator h2 {
+  margin-top: 0;
+  font-size: 19px;
+}
+
+.website-creator input,
+.website-creator textarea {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+}
+
+.website-creator textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.creator-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.creator-actions button {
+  padding: 9px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+#saveWebsiteButton {
+  background: var(--accent);
+  color: white;
+}
+
+#closeWebsiteCreator {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
 }
 
 header {
@@ -268,22 +332,10 @@ footer {
     padding: 10px;
     font-size: 13px;
   }
-}
-  .sites-toolbar {
-  display: flex;
-  justify-content: flex-end;
-  padding: 5px 18px;
-  background: var(--surface);
-}
 
-.sites-toolbar button {
-  padding: 6px 10px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--accent);
-  color: white;
-  cursor: pointer;
-  font-size: 12px;
+  .sites-toolbar {
+    padding: 5px 7px;
+  }
 }
 </style>
 </head>
@@ -305,6 +357,34 @@ footer {
 
   <button id="goButton" type="button">Go</button>
 </nav>
+
+<!-- CREATE WEBSITE BUTTON -->
+<div class="sites-toolbar">
+  <button id="createWebsiteButton" type="button">
+    + Create Website
+  </button>
+</div>
+
+<!-- WEBSITE CREATOR -->
+<div id="websiteCreator" class="website-creator" hidden>
+  <h2>Create a Website</h2>
+
+  <input
+    id="newSiteName"
+    type="text"
+    placeholder="Website name..."
+  >
+
+  <textarea
+    id="newSiteContent"
+    placeholder="Describe your website..."
+  ></textarea>
+
+  <div class="creator-actions">
+    <button id="saveWebsiteButton" type="button">Save</button>
+    <button id="closeWebsiteCreator" type="button">Cancel</button>
+  </div>
+</div>
 
 <header>
   <div class="brand">Mill<span>ora</span></div>
@@ -354,20 +434,18 @@ footer {
 
 <footer>Millora · Your search starts here</footer>
 
-<!-- THEME, ACCOUNT PANEL AND NAVIGATION -->
+<!-- NAVIGATION, THEME, WEBSITE CREATOR AND ACCOUNT PANEL -->
 <script>
 async function goToMilloraURL(input) {
   const url = input.trim();
 
   if (!url) return;
 
-  // Direct website URLs
   if (/^https?:\/\//i.test(url)) {
     window.location.href = url;
     return;
   }
 
-  // Millora URL registry
   if (url.toLowerCase().startsWith("millora://")) {
     const name = url
       .slice("millora://".length)
@@ -378,7 +456,8 @@ async function goToMilloraURL(input) {
       youtube: "https://www.youtube.com",
       google: "https://www.google.com",
       roblox: "https://www.roblox.com",
-      github: "https://github.com"
+      github: "https://github.com",
+      reddit: "https://www.reddit.com"
     };
 
     if (websites[name]) {
@@ -390,7 +469,6 @@ async function goToMilloraURL(input) {
     return;
   }
 
-  // Normal text searches go to Google
   window.location.href =
     "https://www.google.com/search?q=" +
     encodeURIComponent(url);
@@ -400,14 +478,11 @@ async function goToMilloraURL(input) {
 const urlBar = document.getElementById("urlBar");
 
 function navigateAddressBar() {
-  const value = urlBar.value.trim();
-
-  if (!value) return;
-
-  goToMilloraURL(value);
+  goToMilloraURL(urlBar.value);
 }
 
-document.getElementById("goButton").addEventListener("click", navigateAddressBar);
+document.getElementById("goButton")
+  .addEventListener("click", navigateAddressBar);
 
 urlBar.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
@@ -418,17 +493,7 @@ urlBar.addEventListener("keydown", (event) => {
 
 urlBar.value = window.location.href;
 
-document.getElementById("goButton").addEventListener("click", () => {
-  goToMilloraURL(urlBar.value);
-});
-
-urlBar.addEventListener("keydown", (event) => {
-  if (event.key === "Enter") {
-    goToMilloraURL(urlBar.value);
-  }
-});
-
-// Back, forward and refresh
+// Browser controls
 document.getElementById("backButton").addEventListener("click", () => {
   window.history.back();
 });
@@ -469,6 +534,52 @@ themeButton.addEventListener("click", () => {
 document.getElementById("accountButton").addEventListener("click", () => {
   document.getElementById("accountPanel").classList.toggle("open");
 });
+
+// Millora Sites
+const creator = document.getElementById("websiteCreator");
+
+document.getElementById("createWebsiteButton")
+  .addEventListener("click", () => {
+    creator.hidden = !creator.hidden;
+  });
+
+document.getElementById("closeWebsiteCreator")
+  .addEventListener("click", () => {
+    creator.hidden = true;
+  });
+
+document.getElementById("saveWebsiteButton")
+  .addEventListener("click", () => {
+    const name = document.getElementById("newSiteName").value.trim();
+    const content = document.getElementById("newSiteContent").value.trim();
+
+    if (!name) {
+      alert("Enter a website name!");
+      return;
+    }
+
+    let sites = [];
+
+    try {
+      sites = JSON.parse(localStorage.getItem("milloraSites") || "[]");
+      if (!Array.isArray(sites)) sites = [];
+    } catch (e) {
+      sites = [];
+    }
+
+    sites.push({
+      name: name,
+      content: content
+    });
+
+    localStorage.setItem("milloraSites", JSON.stringify(sites));
+
+    alert("Website saved!");
+
+    document.getElementById("newSiteName").value = "";
+    document.getElementById("newSiteContent").value = "";
+    creator.hidden = true;
+  });
 </script>
 
 <!-- SUPABASE ACCOUNT SYSTEM -->
@@ -478,7 +589,7 @@ import { createClient } from
 
 const SUPABASE_URL = "https://xkvbhfjezmxipbqynezs.supabase.co";
 
-// Keep your existing Supabase publishable key here.
+// IMPORTANT: Put your existing Supabase PUBLISHABLE key here.
 const SUPABASE_KEY = "PASTE_YOUR_EXISTING_PUBLISHABLE_KEY_HERE";
 
 const status = document.getElementById("status");
@@ -500,7 +611,6 @@ if (SUPABASE_KEY.includes("PASTE_")) {
 
       authFields.style.display = "none";
       logoutButton.style.display = "block";
-
       document.getElementById("accountButton").textContent = "My account";
     } else {
       document.getElementById("accountHeading").textContent =
