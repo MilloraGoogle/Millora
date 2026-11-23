@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -24,9 +25,7 @@ body.dark {
   --accent: #a18aff;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
@@ -37,7 +36,14 @@ body {
   transition: background .2s, color .2s;
 }
 
-/* BROWSER BAR */
+button {
+  border: 0;
+  border-radius: 999px;
+  padding: 12px 18px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
 .browser-bar {
   display: flex;
   align-items: center;
@@ -61,14 +67,8 @@ body {
   caret-color: var(--accent);
 }
 
-.browser-bar input::placeholder {
-  color: var(--muted);
-  opacity: 1;
-}
-
-.browser-bar input:focus {
-  border-color: var(--accent);
-}
+.browser-bar input::placeholder { color: var(--muted); opacity: 1; }
+.browser-bar input:focus { border-color: var(--accent); }
 
 .browser-bar button {
   padding: 10px 14px;
@@ -80,11 +80,8 @@ body {
   font-size: 16px;
 }
 
-.browser-bar button:hover {
-  border-color: var(--accent);
-}
+.browser-bar button:hover { border-color: var(--accent); }
 
-/* CREATE WEBSITE BUTTON */
 .sites-toolbar {
   display: flex;
   justify-content: flex-end;
@@ -94,7 +91,7 @@ body {
 }
 
 .sites-toolbar button {
-  padding: 6px 10px;
+  padding: 7px 12px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--accent);
@@ -103,9 +100,8 @@ body {
   font-size: 12px;
 }
 
-/* WEBSITE CREATOR */
 .website-creator {
-  width: min(420px, calc(100% - 30px));
+  width: min(440px, calc(100% - 30px));
   margin: 12px 18px 12px auto;
   padding: 16px;
   background: var(--surface);
@@ -113,17 +109,21 @@ body {
   border-radius: 12px;
 }
 
-.website-creator h2 {
-  margin-top: 0;
-  font-size: 19px;
+.website-creator h2 { margin-top: 0; font-size: 19px; }
+
+.website-creator label {
+  display: block;
+  margin-top: 12px;
+  font-size: 13px;
 }
 
 .website-creator input,
-.website-creator textarea {
+.website-creator textarea,
+.website-creator select {
   display: block;
   width: 100%;
   padding: 10px;
-  margin: 8px 0;
+  margin: 7px 0;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--bg);
@@ -132,21 +132,37 @@ body {
 }
 
 .website-creator textarea {
-  min-height: 100px;
+  min-height: 110px;
   resize: vertical;
+}
+
+.url-preview {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding-left: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--muted);
+  margin-top: 7px;
+}
+
+.url-preview input {
+  border: 0;
+  outline: none;
+  margin: 0;
+  min-width: 0;
 }
 
 .creator-actions {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+  margin-top: 12px;
 }
 
-.creator-actions button {
-  padding: 9px 14px;
-  border-radius: 8px;
-  cursor: pointer;
-}
+.creator-actions button { border-radius: 8px; }
 
 #saveWebsiteButton {
   background: var(--accent);
@@ -167,22 +183,8 @@ header {
   padding: 22px clamp(18px, 5vw, 64px);
 }
 
-.brand {
-  font-size: 23px;
-  font-weight: 750;
-}
-
-.brand span, .logo span {
-  color: var(--accent);
-}
-
-button {
-  border: 0;
-  border-radius: 999px;
-  padding: 12px 18px;
-  font-size: 14px;
-  cursor: pointer;
-}
+.brand { font-size: 23px; font-weight: 750; }
+.brand span, .logo span { color: var(--accent); }
 
 #themeButton, #accountButton, .secondary {
   color: var(--text);
@@ -201,10 +203,7 @@ main {
   letter-spacing: -5px;
 }
 
-.subtitle {
-  color: var(--muted);
-  margin: 12px 0 34px;
-}
+.subtitle { color: var(--muted); margin: 12px 0 34px; }
 
 .searchbox {
   display: flex;
@@ -218,11 +217,9 @@ main {
   background: var(--surface);
 }
 
-.searchbox:focus-within {
-  border-color: var(--accent);
-}
+.searchbox:focus-within { border-color: var(--accent); }
 
-input {
+.searchbox input {
   flex: 1;
   min-width: 0;
   border: 0;
@@ -263,13 +260,8 @@ footer {
   text-align: left;
 }
 
-#accountPanel.open {
-  display: block;
-}
-
-#accountPanel h2 {
-  margin-top: 0;
-}
+#accountPanel.open { display: block; }
+#accountPanel h2 { margin-top: 0; }
 
 #accountPanel label {
   display: block;
@@ -284,6 +276,7 @@ footer {
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--bg);
+  color: var(--text);
 }
 
 .account-actions {
@@ -292,9 +285,7 @@ footer {
   margin-top: 16px;
 }
 
-.account-actions button {
-  flex: 1;
-}
+.account-actions button { flex: 1; }
 
 #status {
   font-size: 13px;
@@ -302,86 +293,107 @@ footer {
   overflow-wrap: anywhere;
 }
 
-#logoutButton {
-  display: none;
+#logoutButton { display: none; }
+
+#sitesList {
+  width: min(620px, 100%);
+  margin: 35px auto 0;
+  text-align: left;
 }
 
+.site-card {
+  padding: 14px;
+  margin: 10px 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  overflow-wrap: anywhere;
+}
+
+.site-card h3 { margin: 0 0 6px; }
+.site-card p { color: var(--muted); font-size: 13px; }
+
+.site-card button {
+  padding: 8px 12px;
+  margin: 4px 5px 0 0;
+  border-radius: 8px;
+  background: var(--accent);
+  color: white;
+}
+
+.site-card .delete-site {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+#siteViewer {
+  width: min(800px, calc(100% - 30px));
+  min-height: 300px;
+  margin: 30px auto;
+  padding: 30px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+#siteViewer h1 { font-size: 34px; }
+#siteViewer p { line-height: 1.7; white-space: pre-wrap; }
+#siteViewer button { background: var(--accent); color: white; }
+
 @media(max-width:480px) {
-  main {
-    padding-top: 75px;
-  }
-
-  .logo {
-    letter-spacing: -3px;
-  }
-
-  header {
-    flex-wrap: wrap;
-  }
-
-  .browser-bar {
-    gap: 5px;
-    padding: 9px 7px;
-  }
-
-  .browser-bar button {
-    padding: 10px;
-  }
-
-  .browser-bar input {
-    padding: 10px;
-    font-size: 13px;
-  }
-
-  .sites-toolbar {
-    padding: 5px 7px;
-  }
+  main { padding-top: 75px; }
+  .logo { letter-spacing: -3px; }
+  header { flex-wrap: wrap; }
+  .browser-bar { gap: 5px; padding: 9px 7px; }
+  .browser-bar button { padding: 10px; }
+  .browser-bar input { padding: 10px; font-size: 13px; }
+  .sites-toolbar { padding: 5px 7px; }
 }
 </style>
 </head>
 
 <body>
 
-<!-- BROWSER NAVIGATION -->
 <nav class="browser-bar">
   <button id="backButton" type="button" title="Back">←</button>
   <button id="forwardButton" type="button" title="Forward">→</button>
   <button id="refreshButton" type="button" title="Refresh">⟳</button>
-
-  <input
-    id="urlBar"
-    type="text"
+  <input id="urlBar" type="text"
     placeholder="Enter a URL or millora:// address..."
-    aria-label="Address bar"
-  >
-
+    aria-label="Address bar">
   <button id="goButton" type="button">Go</button>
 </nav>
 
-<!-- CREATE WEBSITE BUTTON -->
 <div class="sites-toolbar">
-  <button id="createWebsiteButton" type="button">
-    + Create Website
-  </button>
+  <button id="createWebsiteButton" type="button">+ Create Website</button>
 </div>
 
-<!-- WEBSITE CREATOR -->
 <div id="websiteCreator" class="website-creator" hidden>
   <h2>Create a Website</h2>
 
-  <input
-    id="newSiteName"
-    type="text"
-    placeholder="Website name..."
-  >
+  <label for="newSiteName">Website name</label>
+  <input id="newSiteName" type="text" placeholder="My Website">
 
-  <textarea
-    id="newSiteContent"
-    placeholder="Describe your website..."
-  ></textarea>
+  <label for="newSiteUrl">Custom website URL</label>
+  <div class="url-preview">
+    <span>millora://</span>
+    <input id="newSiteUrl" type="text" placeholder="mywebsite">
+  </div>
+
+  <label for="newSiteContent">Website description / content</label>
+  <textarea id="newSiteContent" placeholder="Write something about your website..."></textarea>
+
+  <label for="siteVisibility">Visibility</label>
+  <select id="siteVisibility">
+    <option value="private">Private — only on this browser</option>
+    <option value="public">Public — saved preference</option>
+  </select>
 
   <div class="creator-actions">
-    <button id="saveWebsiteButton" type="button">Save</button>
+    <button id="saveWebsiteButton" type="button">Create</button>
     <button id="closeWebsiteCreator" type="button">Cancel</button>
   </div>
 </div>
@@ -394,20 +406,22 @@ footer {
   </div>
 </header>
 
-<main>
+<main id="homePage">
   <div class="logo">Mill<span>ora</span></div>
   <div class="subtitle">Search the world. Discover something new.</div>
 
-  <form class="searchbox"
-        action="https://www.google.com/search"
-        method="GET">
-    <input type="search" name="q"
-           placeholder="Search anything..."
-           aria-label="Search Google" required>
+  <form class="searchbox" action="https://www.google.com/search" method="GET">
+    <input type="search" name="q" placeholder="Search anything..."
+      aria-label="Search Google" required>
     <button id="searchButton" type="submit">Search</button>
   </form>
 
   <div class="hint">Press Enter or click Search to search with Google.</div>
+
+  <section id="sitesList">
+    <h2>Your websites</h2>
+    <div id="sitesContainer"></div>
+  </section>
 
   <section id="accountPanel">
     <h2 id="accountHeading">Your Millora account</h2>
@@ -418,8 +432,7 @@ footer {
       <input id="email" type="email" placeholder="Your email">
 
       <label for="password">Password</label>
-      <input id="password" type="password"
-             placeholder="At least 6 characters">
+      <input id="password" type="password" placeholder="At least 6 characters">
 
       <div class="account-actions">
         <button class="primary" id="signupButton" type="button">Sign up</button>
@@ -432,50 +445,154 @@ footer {
   </section>
 </main>
 
+<section id="siteViewer" hidden></section>
+
 <footer>Millora · Your search starts here</footer>
 
-<!-- NAVIGATION, THEME, WEBSITE CREATOR AND ACCOUNT PANEL -->
 <script>
-async function goToMilloraURL(input) {
-  const url = input.trim();
+const urlBar = document.getElementById("urlBar");
+const homePage = document.getElementById("homePage");
+const siteViewer = document.getElementById("siteViewer");
+const creator = document.getElementById("websiteCreator");
 
+function getSites() {
+  try {
+    const sites = JSON.parse(localStorage.getItem("milloraSites") || "[]");
+    return Array.isArray(sites) ? sites : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveSites(sites) {
+  localStorage.setItem("milloraSites", JSON.stringify(sites));
+}
+
+function renderSites() {
+  const container = document.getElementById("sitesContainer");
+  container.replaceChildren();
+
+  const sites = getSites();
+
+  if (sites.length === 0) {
+    const empty = document.createElement("p");
+    empty.textContent = "You haven't created any websites yet.";
+    empty.style.color = "var(--muted)";
+    container.append(empty);
+    return;
+  }
+
+  sites.forEach(site => {
+    const card = document.createElement("div");
+    card.className = "site-card";
+
+    const title = document.createElement("h3");
+    title.textContent = site.name;
+
+    const address = document.createElement("p");
+    address.textContent = "millora://" + site.slug;
+
+    const visibility = document.createElement("p");
+    visibility.textContent = "Visibility: " + site.visibility;
+
+    const open = document.createElement("button");
+    open.textContent = "Open website";
+    open.addEventListener("click", () => openSavedSite(site.slug));
+
+    const remove = document.createElement("button");
+    remove.className = "delete-site";
+    remove.textContent = "Delete";
+    remove.addEventListener("click", () => {
+      if (!confirm("Delete " + site.name + "?")) return;
+      saveSites(getSites().filter(item => item.slug !== site.slug));
+      renderSites();
+    });
+
+    card.append(title, address, visibility, open, remove);
+    container.append(card);
+  });
+}
+
+function openSavedSite(slug) {
+  const site = getSites().find(item => item.slug === slug);
+
+  if (!site) {
+    alert("Millora couldn't find that website.");
+    return;
+  }
+
+  homePage.hidden = true;
+  siteViewer.hidden = false;
+  siteViewer.replaceChildren();
+
+  const back = document.createElement("button");
+  back.textContent = "← Back to Millora";
+  back.addEventListener("click", showHome);
+
+  const address = document.createElement("p");
+  address.textContent = "millora://" + site.slug;
+  address.style.color = "var(--muted)";
+
+  const title = document.createElement("h1");
+  title.textContent = site.name;
+
+  const content = document.createElement("p");
+  content.textContent = site.content;
+
+  siteViewer.append(back, address, title, content);
+  urlBar.value = "millora://" + site.slug;
+}
+
+function showHome() {
+  siteViewer.hidden = true;
+  homePage.hidden = false;
+  urlBar.value = "";
+}
+
+function goToMilloraURL(input) {
+  const url = input.trim();
   if (!url) return;
+
+  if (/^millora:\/\//i.test(url)) {
+    const slug = url.slice("millora://".length)
+      .split("/")[0].toLowerCase();
+
+    const sites = getSites();
+    const site = sites.find(item => item.slug === slug);
+
+    if (site) {
+      openSavedSite(slug);
+      return;
+    }
+
+    const shortcuts = {
+      youtube: "https://www.youtube.com",
+      google: "https://www.google.com",
+      roblox: "https://www.roblox.com",
+      github: "https://github.com"
+    };
+
+    if (shortcuts[slug]) {
+      window.location.href = shortcuts[slug];
+    } else {
+      alert("Millora couldn't find: " + slug);
+    }
+    return;
+  }
 
   if (/^https?:\/\//i.test(url)) {
     window.location.href = url;
     return;
   }
 
-  if (url.toLowerCase().startsWith("millora://")) {
-    const name = url
-      .slice("millora://".length)
-      .split("/")[0]
-      .toLowerCase();
-
-    const websites = {
-      youtube: "https://www.youtube.com",
-      google: "https://www.google.com",
-      roblox: "https://www.roblox.com",
-      github: "https://github.com",
-      reddit: "https://www.reddit.com"
-    };
-
-    if (websites[name]) {
-      window.location.href = websites[name];
-    } else {
-      alert("Millora couldn't find: " + name);
-    }
-
+  if (/^[\w.-]+\.[a-z]{2,}(\/.*)?$/i.test(url)) {
+    window.location.href = "https://" + url;
     return;
   }
 
   window.location.href =
-    "https://www.google.com/search?q=" +
-    encodeURIComponent(url);
+    "https://www.google.com/search?q=" + encodeURIComponent(url);
 }
-
-// Address bar
-const urlBar = document.getElementById("urlBar");
 
 function navigateAddressBar() {
   goToMilloraURL(urlBar.value);
@@ -484,18 +601,19 @@ function navigateAddressBar() {
 document.getElementById("goButton")
   .addEventListener("click", navigateAddressBar);
 
-urlBar.addEventListener("keydown", (event) => {
+urlBar.addEventListener("keydown", event => {
   if (event.key === "Enter") {
     event.preventDefault();
     navigateAddressBar();
   }
 });
 
-urlBar.value = window.location.href;
-
-// Browser controls
 document.getElementById("backButton").addEventListener("click", () => {
-  window.history.back();
+  if (!siteViewer.hidden) {
+    showHome();
+  } else {
+    window.history.back();
+  }
 });
 
 document.getElementById("forwardButton").addEventListener("click", () => {
@@ -503,7 +621,12 @@ document.getElementById("forwardButton").addEventListener("click", () => {
 });
 
 document.getElementById("refreshButton").addEventListener("click", () => {
-  window.location.reload();
+  if (!siteViewer.hidden) {
+    const slug = urlBar.value.slice("millora://".length);
+    openSavedSite(slug);
+  } else {
+    window.location.reload();
+  }
 });
 
 // Theme
@@ -512,19 +635,10 @@ const themeButton = document.getElementById("themeButton");
 function setTheme(dark) {
   document.body.classList.toggle("dark", dark);
   themeButton.textContent = dark ? "☀ Light mode" : "☾ Dark mode";
-
-  try {
-    localStorage.setItem("millora-theme", dark ? "dark" : "light");
-  } catch (e) {}
+  localStorage.setItem("millora-theme", dark ? "dark" : "light");
 }
 
-let savedTheme = false;
-
-try {
-  savedTheme = localStorage.getItem("millora-theme") === "dark";
-} catch (e) {}
-
-setTheme(savedTheme);
+setTheme(localStorage.getItem("millora-theme") === "dark");
 
 themeButton.addEventListener("click", () => {
   setTheme(!document.body.classList.contains("dark"));
@@ -535,9 +649,7 @@ document.getElementById("accountButton").addEventListener("click", () => {
   document.getElementById("accountPanel").classList.toggle("open");
 });
 
-// Millora Sites
-const creator = document.getElementById("websiteCreator");
-
+// Website creator
 document.getElementById("createWebsiteButton")
   .addEventListener("click", () => {
     creator.hidden = !creator.hidden;
@@ -551,79 +663,79 @@ document.getElementById("closeWebsiteCreator")
 document.getElementById("saveWebsiteButton")
   .addEventListener("click", () => {
     const name = document.getElementById("newSiteName").value.trim();
+    const slug = document.getElementById("newSiteUrl").value.trim().toLowerCase();
     const content = document.getElementById("newSiteContent").value.trim();
+    const visibility = document.getElementById("siteVisibility").value;
 
-    if (!name) {
-      alert("Enter a website name!");
+    if (!name || !slug || !content) {
+      alert("Please fill in all the fields!");
       return;
     }
 
-    let sites = [];
-
-    try {
-      sites = JSON.parse(localStorage.getItem("milloraSites") || "[]");
-      if (!Array.isArray(sites)) sites = [];
-    } catch (e) {
-      sites = [];
+    if (!/^[a-z0-9-]+$/.test(slug)) {
+      alert("Use only lowercase letters, numbers, and hyphens in your URL.");
+      return;
     }
 
-    sites.push({
-      name: name,
-      content: content
-    });
+    const sites = getSites();
 
-    localStorage.setItem("milloraSites", JSON.stringify(sites));
+    if (sites.some(site => site.slug === slug)) {
+      alert("That Millora URL is already taken!");
+      return;
+    }
 
-    alert("Website saved!");
+    sites.push({ name, slug, content, visibility });
+
+    try {
+      saveSites(sites);
+    } catch {
+      alert("Couldn't save your website. Browser storage may be full.");
+      return;
+    }
+
+    alert("Website created! Open millora://" + slug);
 
     document.getElementById("newSiteName").value = "";
+    document.getElementById("newSiteUrl").value = "";
     document.getElementById("newSiteContent").value = "";
+    document.getElementById("siteVisibility").value = "private";
+
     creator.hidden = true;
+    renderSites();
   });
+
+renderSites();
 </script>
 
-<!-- SUPABASE ACCOUNT SYSTEM -->
 <script type="module">
 import { createClient } from
 "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
 const SUPABASE_URL = "https://xkvbhfjezmxipbqynezs.supabase.co";
-
-// IMPORTANT: Put your existing Supabase PUBLISHABLE key here.
 const SUPABASE_KEY = "sb_publishable_w_IiOxzbLWvj7nT8S4fvUg_R-C1GtTY";
 
 const status = document.getElementById("status");
 const authFields = document.getElementById("authFields");
 const logoutButton = document.getElementById("logoutButton");
 
-if (SUPABASE_KEY.includes("PASTE_")) {
-  status.textContent = "Add your Supabase publishable key to activate accounts.";
-} else {
+try {
   const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
   function showUser(user) {
     if (user) {
-      document.getElementById("accountHeading").textContent =
-        "You're logged in!";
-
+      document.getElementById("accountHeading").textContent = "You're logged in!";
       document.getElementById("accountDescription").textContent =
         user.email || "Your account is active.";
-
       authFields.style.display = "none";
       logoutButton.style.display = "block";
       document.getElementById("accountButton").textContent = "My account";
     } else {
-      document.getElementById("accountHeading").textContent =
-        "Your Millora account";
-
+      document.getElementById("accountHeading").textContent = "Your Millora account";
       document.getElementById("accountDescription").textContent =
         "Create an account or log in.";
-
       authFields.style.display = "block";
       logoutButton.style.display = "none";
-
-      document.getElementById("accountButton").textContent =
-        "Log in / Sign up";
+      document.getElementById("accountButton").textContent = "Log in / Sign up";
     }
   }
 
@@ -649,7 +761,6 @@ if (SUPABASE_KEY.includes("PASTE_")) {
     if (!details) return;
 
     status.textContent = "Creating account...";
-
     const { data, error } = await supabase.auth.signUp(details);
 
     if (error) {
@@ -666,18 +777,13 @@ if (SUPABASE_KEY.includes("PASTE_")) {
     if (!details) return;
 
     status.textContent = "Logging in...";
-
-    const { error } =
-      await supabase.auth.signInWithPassword(details);
-
+    const { error } = await supabase.auth.signInWithPassword(details);
     status.textContent = error ? error.message : "Logged in successfully!";
   });
 
   logoutButton.addEventListener("click", async () => {
     status.textContent = "Logging out...";
-
     const { error } = await supabase.auth.signOut();
-
     status.textContent = error ? error.message : "Logged out.";
   });
 
@@ -687,11 +793,15 @@ if (SUPABASE_KEY.includes("PASTE_")) {
     status.textContent = error.message;
   } else {
     showUser(data.session?.user ?? null);
+    status.textContent = data.session ? "Account connected." : "Ready to sign in.";
   }
 
   supabase.auth.onAuthStateChange((_event, session) => {
     showUser(session?.user ?? null);
   });
+
+} catch (error) {
+  status.textContent = "Account system error: " + error.message;
 }
 </script>
 
