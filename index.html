@@ -212,10 +212,20 @@ footer {
       encodeURIComponent(url);
     return;
   }
+  const name = url.slice("millora://".length).toLowerCase();
 
-  const name = url.slice("millora://".length);
+  const websites = {
+    youtube: "https://www.youtube.com",
+    google: "https://www.google.com",
+    roblox: "https://www.roblox.com",
+    github: "https://github.com"
+  };
 
-  // URL registry lookup goes here next.
+  if (websites[name]) {
+    window.location.href = websites[name];
+  } else {
+    alert("Millora couldn't find: " + name);
+  }
 }
 const themeButton = document.getElementById("themeButton");
 
