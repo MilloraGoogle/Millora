@@ -66,6 +66,21 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:40px 18px}
 .hover-count{font-size:12px;color:var(--muted);border-top:1px solid var(--border);padding-top:10px}
 [hidden]{display:none!important}
 @media(max-width:480px){main{padding-top:65px}.browser-bar{padding:7px;gap:4px}.browser-bar button{padding:9px 10px}header{flex-wrap:wrap}}
+
+#friendsPanel{margin-top:22px;padding:16px;border:1px solid var(--border);border-radius:15px;background:var(--bg)}
+#friendsPanel h3{margin:0 0 10px}
+.friends-section{margin-top:18px}
+.friend-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.friend-row:last-child{border-bottom:0}
+.friend-mini-avatar{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;overflow:hidden;flex-shrink:0;color:#fff;font-weight:bold;background:var(--accent)}
+.friend-mini-avatar img{width:100%;height:100%;object-fit:cover}
+.friend-row-info{flex:1;min-width:0}
+.friend-row-info strong{display:block;overflow-wrap:anywhere}
+.friend-row-info small{color:var(--muted)}
+.friend-row-actions{display:flex;gap:6px;flex-wrap:wrap}
+.friend-row-actions button{padding:8px 10px}
+.friend-note{font-size:13px;color:var(--muted)}
+
 </style>
 </head>
 <body>
@@ -170,6 +185,8 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:40px 18px}
  <div class="actions"><button id="saveProfileButton" class="primary">Save profile</button></div>
  <p class="profile-meta">Your profile name, username, bio, and avatar color are public profile information. Your email and password are not displayed.</p>
 </div>
+
+<section id="friendsPanel"><h3>Millora Friends</h3><p class="profile-meta">Find people and manage friend requests.</p><label for="friendSearchInput">Search by username</label><input id="friendSearchInput" maxlength="20" placeholder="Search usernames..."><div class="actions"><button id="friendSearchButton" class="primary" type="button">Search</button></div><p id="friendsStatus" class="friend-note" aria-live="polite">Search for a username to get started.</p><div id="friendSearchResults"></div><div class="friends-section"><h3>Friend requests</h3><div id="incomingRequests"></div><div id="outgoingRequests"></div></div><div class="friends-section"><h3>Your friends</h3><div id="friendsList"></div></div></section>
 <button id="logoutButton" class="secondary">Log out</button>
 <p id="status">Loading account system...</p>
 </section>
@@ -469,6 +486,7 @@ try{
   $("profileAvatarColor").value=profile.avatar_color||"#8064e9";
   renderProfile(profile);
   status.textContent=data?"Profile loaded.":"Welcome! Create your Millora profile below.";
+   if(data)await loadFriends();
  }
  // Reusable hover preview: attach this to any Millora username or avatar later.
  const hoverCard=$("profileHoverCard");
@@ -536,6 +554,18 @@ try{
   finally{$("removeAvatarButton").disabled=false}
  };
 
+
+ const friendsStatus=$("friendsStatus"), searchResults=$("friendSearchResults"), incoming=$("incomingRequests"), outgoing=$("outgoingRequests"), friends=$("friendsList");
+ function friendRow(p,actions=[]){const row=document.createElement("div");row.className="friend-row";const av=document.createElement("div");av.className="friend-mini-avatar";av.style.background=p.avatar_color||"#8064e9";if(p.avatar_url){const img=document.createElement("img");img.src=p.avatar_url;img.alt="";av.append(img)}else av.textContent=(p.display_name||p.username||"?")[0].toUpperCase();row.append(av);const info=document.createElement("div");info.className="friend-row-info";const n=document.createElement("strong");n.textContent=p.display_name||"Millora user";const u=document.createElement("small");u.textContent="@"+p.username;info.append(n,u);row.append(info);if(actions.length){const box=document.createElement("div");box.className="friend-row-actions";actions.forEach(a=>{const b=document.createElement("button");b.type="button";b.textContent=a.label;b.className=a.primary?"primary":"secondary";b.onclick=a.run;box.append(b)});row.append(box)}return row}
+ function empty(el,msg){const p=document.createElement("p");p.className="friend-note";p.textContent=msg;el.append(p)}
+ async function loadFriends(){if(!activeUser)return;[incoming,outgoing,friends].forEach(x=>x.replaceChildren());const {data:rs,error}=await supabase.from("friend_requests").select("id,sender_id,receiver_id,status,created_at").or("sender_id.eq."+activeUser.id+",receiver_id.eq."+activeUser.id).order("created_at",{ascending:false});if(error){friendsStatus.textContent="Friends database isn't ready. Run the SQL setup.";empty(incoming,error.message);return}const rows=rs||[],ids=[...new Set(rows.flatMap(r=>[r.sender_id,r.receiver_id]).filter(id=>id!==activeUser.id))],byId={};if(ids.length){const {data,error:e}=await supabase.from("profiles").select("id,username,display_name,avatar_color,avatar_url").in("id",ids);if(e){friendsStatus.textContent=e.message;return}(data||[]).forEach(p=>byId[p.id]=p)}const ins=rows.filter(r=>r.receiver_id===activeUser.id&&r.status==="pending"),outs=rows.filter(r=>r.sender_id===activeUser.id&&r.status==="pending"),accepted=rows.filter(r=>r.status==="accepted");ins.forEach(r=>byId[r.sender_id]&&incoming.append(friendRow(byId[r.sender_id],[{label:"Accept",primary:true,run:()=>changeRequest(r.id,"accepted")},{label:"Decline",run:()=>changeRequest(r.id,"declined")}])));outs.forEach(r=>byId[r.receiver_id]&&outgoing.append(friendRow(byId[r.receiver_id],[{label:"Cancel",run:()=>deleteRequest(r.id)}])));accepted.forEach(r=>{const id=r.sender_id===activeUser.id?r.receiver_id:r.sender_id;if(byId[id])friends.append(friendRow(byId[id],[{label:"Remove",run:()=>removeFriend(r.id,byId[id].username)}]))});if(!incoming.children.length)empty(incoming,"No incoming requests.");if(!outgoing.children.length)empty(outgoing,"No outgoing requests.");if(!friends.children.length)empty(friends,"You haven't added any friends yet.");friendsStatus.textContent="Friends loaded."}
+ async function changeRequest(id,status){const {error}=await supabase.from("friend_requests").update({status,updated_at:new Date().toISOString()}).eq("id",id);if(error){friendsStatus.textContent=error.message;return}await loadFriends()}
+ async function deleteRequest(id){const {error}=await supabase.from("friend_requests").delete().eq("id",id);if(error){friendsStatus.textContent=error.message;return}await loadFriends()}
+ async function removeFriend(id,username){if(!confirm("Remove @"+username+" from your friends?"))return;await deleteRequest(id)}
+ async function searchFriends(){if(!activeUser){friendsStatus.textContent="Please log in first.";return}const term=$("friendSearchInput").value.trim().replace(/^@/,"").toLowerCase();searchResults.replaceChildren();if(term.length<2){friendsStatus.textContent="Enter at least 2 characters.";return}friendsStatus.textContent="Searching...";const {data:matches,error}=await supabase.from("profiles").select("id,username,display_name,avatar_color,avatar_url").ilike("username","%"+term+"%").neq("id",activeUser.id).limit(10);if(error){friendsStatus.textContent=error.message;return}if(!matches?.length){friendsStatus.textContent="No matching users.";return}const {data:rels,error:e}=await supabase.from("friend_requests").select("id,sender_id,receiver_id,status").or("sender_id.eq."+activeUser.id+",receiver_id.eq."+activeUser.id);if(e){friendsStatus.textContent=e.message;return}matches.forEach(p=>{const rel=(rels||[]).find(r=>(r.sender_id===activeUser.id&&r.receiver_id===p.id)||(r.sender_id===p.id&&r.receiver_id===activeUser.id));let a=[];if(!rel)a=[{label:"Add friend",primary:true,run:()=>sendRequest(p.id,p.username)}];else if(rel.status==="accepted")a=[{label:"Already friends",run:()=>{}}];else if(rel.status==="pending")a=[{label:rel.sender_id===activeUser.id?"Request sent":"They requested you",run:()=>{}}];else a=[{label:"Send new request",primary:true,run:()=>sendRequest(p.id,p.username,rel.id)}];searchResults.append(friendRow(p,a))});friendsStatus.textContent="Found "+matches.length+" user(s)."}
+ async function sendRequest(receiverId,username,oldId){if(oldId){const {error}=await supabase.from("friend_requests").delete().eq("id",oldId);if(error){friendsStatus.textContent=error.message;return}}const {error}=await supabase.from("friend_requests").insert({sender_id:activeUser.id,receiver_id:receiverId,status:"pending"});if(error){friendsStatus.textContent="Couldn't send request: "+error.message;return}friendsStatus.textContent="Request sent to @"+username+"!";await searchFriends();await loadFriends()}
+ $("friendSearchButton").onclick=searchFriends;$("friendSearchInput").addEventListener("keydown",e=>{if(e.key==="Enter")searchFriends()});
+
  function credentials(){
   const email=$("email").value.trim(),password=$("password").value;
   if(!email||!password){status.textContent="Enter your email and password.";return null}
@@ -570,6 +600,8 @@ try{
   if(error){status.textContent=error.code==="23505"?"That username is already taken. Try another one.":error.message;return}
   const {data:savedProfile}=await supabase.from("profiles").select("username,display_name,bio,avatar_color,avatar_url,avatar_path").eq("id",activeUser.id).maybeSingle();
    renderProfile(savedProfile||{username,display_name,bio,avatar_color});status.textContent="Profile saved!";
+   await loadFriends();
+   await loadFriends();
  };
  logoutButton.onclick=async()=>{
   status.textContent="Logging out...";const {error}=await supabase.auth.signOut();
