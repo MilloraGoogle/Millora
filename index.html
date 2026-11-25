@@ -160,6 +160,13 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:40px 18px}
  <label>Username (3–20 characters: letters, numbers, underscores)</label><input id="profileUsername" maxlength="20" placeholder="your_username">
  <label>Bio (max 160 characters)</label><textarea id="profileBio" maxlength="160" placeholder="Tell people a little about yourself..."></textarea>
  <label>Avatar color</label><input id="profileAvatarColor" type="color" value="#8064e9">
+ <label>Profile picture</label>
+ <input id="avatarFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+ <div class="actions">
+  <button id="chooseAvatarButton" type="button" class="secondary">Upload picture</button>
+  <button id="removeAvatarButton" type="button" class="secondary" hidden>Remove picture</button>
+ </div>
+ <p class="profile-meta">PNG, JPG, WEBP, or GIF · Maximum 5 MB</p>
  <div class="actions"><button id="saveProfileButton" class="primary">Save profile</button></div>
  <p class="profile-meta">Your profile name, username, bio, and avatar color are public profile information. Your email and password are not displayed.</p>
 </div>
