@@ -46,7 +46,7 @@ main{text-align:center;padding:90px 18px 30px}
 #logoutButton{display:none}
 #profileArea{margin-top:18px}
 .profile-card{padding:18px;border:1px solid var(--border);border-radius:15px;background:var(--bg);margin:12px 0}
-.profile-avatar{width:68px;height:68px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:26px;font-weight:bold;background:var(--accent);margin-bottom:12px}
+.profile-avatar{width:68px;height:68px;border-radius:50%;display:grid;place-items:center;overflow:hidden;color:#fff;font-size:26px;font-weight:bold;background:var(--accent);margin-bottom:12px;cursor:pointer}.profile-avatar img,.hover-avatar img{width:100%;height:100%;object-fit:cover;display:block}
 .profile-meta{color:var(--muted);font-size:13px;overflow-wrap:anywhere}
 .profile-bio{white-space:pre-wrap;line-height:1.5}
 .profile-sites{margin-top:12px}
@@ -56,6 +56,14 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:40px 18px}
 .ai-panel h3{margin:0 0 8px}
 .ai-status{font-size:13px;color:var(--muted);white-space:pre-wrap}
 .ai-preview{width:100%;height:420px;border:1px solid var(--border);border-radius:10px;background:#fff;margin-top:10px}
+#avatarFile{display:none}
+.profile-hover-card{position:fixed;z-index:9999;width:min(300px,calc(100vw - 24px));padding:15px;border:1px solid var(--border);border-radius:15px;background:var(--bg);box-shadow:0 12px 35px #0003;text-align:left;display:none}
+.profile-hover-card.visible{display:block}
+.hover-top{display:flex;align-items:center;gap:11px}
+.hover-avatar{width:48px;height:48px;border-radius:50%;overflow:hidden;display:grid;place-items:center;flex-shrink:0;color:white;font-weight:bold;background:var(--accent)}
+.hover-name{font-weight:bold}.hover-username{font-size:12px;color:var(--muted);margin-top:3px}
+.hover-bio{font-size:13px;line-height:1.45;margin:12px 0}
+.hover-count{font-size:12px;color:var(--muted);border-top:1px solid var(--border);padding-top:10px}
 [hidden]{display:none!important}
 @media(max-width:480px){main{padding-top:65px}.browser-bar{padding:7px;gap:4px}.browser-bar button{padding:9px 10px}header{flex-wrap:wrap}}
 </style>
@@ -161,6 +169,14 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:40px 18px}
 </main>
 
 <section id="siteViewer" hidden></section>
+<div id="profileHoverCard" class="profile-hover-card" role="tooltip" aria-hidden="true">
+ <div class="hover-top">
+  <div class="hover-avatar" id="hoverAvatar">M</div>
+  <div><div class="hover-name" id="hoverName">Millora user</div><div class="hover-username" id="hoverUsername">@username</div></div>
+ </div>
+ <div class="hover-bio" id="hoverBio">This user hasn't added a bio yet.</div>
+ <div class="hover-count" id="hoverWebsiteCount">0 websites</div>
+</div>
 <footer>Millora · Your search starts here</footer>
 
 <script>
@@ -402,15 +418,26 @@ try{
   const username=profile?.username||"username_not_set";
   const bio=profile?.bio||"Add a short bio about yourself.";
   const color=profile?.avatar_color||"#8064e9";
+  const avatarUrl=profile?.avatar_url||"";
   $("profileNamePreview").textContent=displayName;
   $("profileUsernamePreview").textContent="@"+username;
   $("profileBioPreview").textContent=bio;
-  $("profileAvatarPreview").textContent=(displayName.trim()[0]||"M").toUpperCase();
-  $("profileAvatarPreview").style.background=color;
+  const avatar=$("profileAvatarPreview");avatar.replaceChildren();avatar.style.background=color;
+  if(avatarUrl){const img=document.createElement("img");img.src=avatarUrl;img.alt="Profile picture";avatar.append(img)}
+  else avatar.textContent=(displayName.trim()[0]||"M").toUpperCase();
+  $("removeAvatarButton").hidden=!avatarUrl;
   const sites=JSON.parse(localStorage.getItem("milloraSites")||"[]");
+  const safeSites=Array.isArray(sites)?sites:[];
   const list=$("profileSitesPreview");list.replaceChildren();
-  if(!Array.isArray(sites)||!sites.length){list.textContent="No websites created on this browser yet.";return}
-  sites.forEach(site=>{const item=document.createElement("p");item.textContent=site.name+" · millora://"+site.slug;list.append(item)});
+  if(!safeSites.length)list.textContent="No websites created on this browser yet.";
+  else safeSites.forEach(site=>{const item=document.createElement("p");item.textContent=site.name+" · millora://"+site.slug;list.append(item)});
+  const hoverAvatar=$("hoverAvatar");hoverAvatar.replaceChildren();hoverAvatar.style.background=color;
+  if(avatarUrl){const img=document.createElement("img");img.src=avatarUrl;img.alt="";hoverAvatar.append(img)}
+  else hoverAvatar.textContent=(displayName.trim()[0]||"M").toUpperCase();
+  $("hoverName").textContent=displayName;
+  $("hoverUsername").textContent="@"+username;
+  $("hoverBio").textContent=bio||"This user hasn't added a bio yet.";
+  $("hoverWebsiteCount").textContent=safeSites.length+" website"+(safeSites.length===1?"":"s")+" on this browser";
  }
  async function loadProfile(user){
   activeUser=user;
@@ -426,9 +453,9 @@ try{
   authFields.style.display="none";profileArea.hidden=false;logoutButton.style.display="inline-block";
   $("accountButton").textContent="My account";
   status.textContent="Loading your profile...";
-  const {data,error}=await supabase.from("profiles").select("username,display_name,bio,avatar_color").eq("id",user.id).maybeSingle();
+  const {data,error}=await supabase.from("profiles").select("username,display_name,bio,avatar_color,avatar_url,avatar_path").eq("id",user.id).maybeSingle();
   if(error){status.textContent="Profile database isn't ready yet. Run the SQL setup shown with this update.";return}
-  const profile=data||{username:"",display_name:"",bio:"",avatar_color:"#8064e9"};
+  const profile=data||{username:"",display_name:"",bio:"",avatar_color:"#8064e9",avatar_url:"",avatar_path:""};
   $("profileDisplayName").value=profile.display_name||"";
   $("profileUsername").value=profile.username||"";
   $("profileBio").value=profile.bio||"";
@@ -436,6 +463,72 @@ try{
   renderProfile(profile);
   status.textContent=data?"Profile loaded.":"Welcome! Create your Millora profile below.";
  }
+ // Reusable hover preview: attach this to any Millora username or avatar later.
+ const hoverCard=$("profileHoverCard");
+ let hoverHideTimer=null;
+ function showProfileHover(anchor){
+  clearTimeout(hoverHideTimer);
+  const rect=anchor.getBoundingClientRect();
+  hoverCard.style.left=Math.max(12,Math.min(rect.left,window.innerWidth-312))+"px";
+  hoverCard.style.top=Math.min(window.innerHeight-190,rect.bottom+8)+"px";
+  hoverCard.classList.add("visible");hoverCard.setAttribute("aria-hidden","false");
+ }
+ function hideProfileHover(){
+  hoverHideTimer=setTimeout(()=>{hoverCard.classList.remove("visible");hoverCard.setAttribute("aria-hidden","true")},180);
+ }
+ [$("profileAvatarPreview"),$("profileUsernamePreview")].forEach(el=>{
+  el.addEventListener("mouseenter",()=>showProfileHover(el));
+  el.addEventListener("mouseleave",hideProfileHover);
+  el.addEventListener("focus",()=>showProfileHover(el));
+  el.addEventListener("blur",hideProfileHover);
+ });
+ hoverCard.addEventListener("mouseenter",()=>clearTimeout(hoverHideTimer));
+ hoverCard.addEventListener("mouseleave",hideProfileHover);
+
+ $("chooseAvatarButton").onclick=()=> $("avatarFile").click();
+ $("avatarFile").onchange=async()=>{
+  const file=$("avatarFile").files?.[0];
+  if(!file)return;
+  const allowed=["image/png","image/jpeg","image/webp","image/gif"];
+  if(!allowed.includes(file.type)){status.textContent="Choose a PNG, JPG, WEBP, or GIF image.";return}
+  if(file.size>5*1024*1024){status.textContent="That image is too large. Maximum size is 5 MB.";return}
+  if(!activeUser){status.textContent="Please log in first.";return}
+  const ext=({"image/png":"png","image/jpeg":"jpg","image/webp":"webp","image/gif":"gif"})[file.type];
+  const path=activeUser.id+"/"+Date.now()+"."+ext;
+  $("chooseAvatarButton").disabled=true;status.textContent="Uploading profile picture...";
+  try{
+   const {data:profileExists,error:profileCheckError}=await supabase.from("profiles").select("id").eq("id",activeUser.id).maybeSingle();
+   if(profileCheckError)throw profileCheckError;
+   if(!profileExists)throw new Error("Save your profile first, then upload your picture.");
+   const {error:uploadError}=await supabase.storage.from("avatars").upload(path,file,{contentType:file.type,upsert:false});
+   if(uploadError)throw uploadError;
+   const {data:publicData}=supabase.storage.from("avatars").getPublicUrl(path);
+   const {data:oldProfile,error:readError}=await supabase.from("profiles").select("avatar_path").eq("id",activeUser.id).maybeSingle();
+   if(readError)throw readError;
+   const {error:saveError}=await supabase.from("profiles").update({avatar_url:publicData.publicUrl,avatar_path:path,updated_at:new Date().toISOString()}).eq("id",activeUser.id);
+   if(saveError)throw saveError;
+   if(oldProfile?.avatar_path)await supabase.storage.from("avatars").remove([oldProfile.avatar_path]);
+   const {data:profileData}=await supabase.from("profiles").select("username,display_name,bio,avatar_color,avatar_url,avatar_path").eq("id",activeUser.id).maybeSingle();
+   renderProfile(profileData||{avatar_url:publicData.publicUrl,avatar_path:path});
+   status.textContent="Profile picture uploaded!";
+  }catch(error){status.textContent="Avatar upload failed: "+error.message}
+  finally{$("chooseAvatarButton").disabled=false;$("avatarFile").value=""}
+ };
+ $("removeAvatarButton").onclick=async()=>{
+  if(!activeUser)return;
+  $("removeAvatarButton").disabled=true;status.textContent="Removing profile picture...";
+  try{
+   const {data:profileData,error:readError}=await supabase.from("profiles").select("avatar_path").eq("id",activeUser.id).maybeSingle();
+   if(readError)throw readError;
+   const {error:updateError}=await supabase.from("profiles").update({avatar_url:null,avatar_path:null,updated_at:new Date().toISOString()}).eq("id",activeUser.id);
+   if(updateError)throw updateError;
+   if(profileData?.avatar_path)await supabase.storage.from("avatars").remove([profileData.avatar_path]);
+   const {data:updated}=await supabase.from("profiles").select("username,display_name,bio,avatar_color,avatar_url,avatar_path").eq("id",activeUser.id).maybeSingle();
+   renderProfile(updated||{});status.textContent="Profile picture removed.";
+  }catch(error){status.textContent="Couldn't remove picture: "+error.message}
+  finally{$("removeAvatarButton").disabled=false}
+ };
+
  function credentials(){
   const email=$("email").value.trim(),password=$("password").value;
   if(!email||!password){status.textContent="Enter your email and password.";return null}
@@ -464,10 +557,12 @@ try{
   if(!display_name){status.textContent="Please enter a display name.";return}
   if(!/^[a-z0-9_]{3,20}$/.test(username)){status.textContent="Username must be 3–20 characters using lowercase letters, numbers, or underscores.";return}
   status.textContent="Saving profile...";$("saveProfileButton").disabled=true;
-  const {error}=await supabase.from("profiles").upsert({id:activeUser.id,username,display_name,bio,avatar_color,updated_at:new Date().toISOString()});
+  const {data:existingProfile}=await supabase.from("profiles").select("avatar_url,avatar_path").eq("id",activeUser.id).maybeSingle();
+   const {error}=await supabase.from("profiles").upsert({id:activeUser.id,username,display_name,bio,avatar_color,avatar_url:existingProfile?.avatar_url||null,avatar_path:existingProfile?.avatar_path||null,updated_at:new Date().toISOString()});
   $("saveProfileButton").disabled=false;
   if(error){status.textContent=error.code==="23505"?"That username is already taken. Try another one.":error.message;return}
-  renderProfile({username,display_name,bio,avatar_color});status.textContent="Profile saved!";
+  const {data:savedProfile}=await supabase.from("profiles").select("username,display_name,bio,avatar_color,avatar_url,avatar_path").eq("id",activeUser.id).maybeSingle();
+   renderProfile(savedProfile||{username,display_name,bio,avatar_color});status.textContent="Profile saved!";
  };
  logoutButton.onclick=async()=>{
   status.textContent="Logging out...";const {error}=await supabase.auth.signOut();
