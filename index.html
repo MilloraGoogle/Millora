@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -49,15 +50,6 @@ main{text-align:center;padding:90px 18px 30px}
 #logoutButton{display:none}
 #profileArea{margin-top:18px}
 .profile-card{padding:18px;border:1px solid var(--border);border-radius:15px;background:var(--bg);margin:12px 0}
-.millbucks-card{padding:18px;border:1px solid var(--border);border-radius:15px;background:var(--bg);margin:12px 0}
-.millbucks-balance{font-size:32px;font-weight:800;color:var(--accent);margin:8px 0}
-.millbucks-columns{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.millbucks-list{padding:0;margin:8px 0;list-style:none}
-.millbucks-list li{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
-.millbucks-list li:last-child{border-bottom:0}
-.millbucks-muted{font-size:12px;color:var(--muted)}
-@media(max-width:600px){.millbucks-columns{grid-template-columns:1fr}}
-
 .profile-avatar{width:68px;height:68px;border-radius:50%;display:grid;place-items:center;overflow:hidden;color:#fff;font-size:26px;font-weight:bold;background:var(--accent);margin-bottom:12px;cursor:pointer}
 .profile-avatar img,.hover-avatar img{width:100%;height:100%;object-fit:cover;display:block}
 .profile-meta{color:var(--muted);font-size:13px;overflow-wrap:anywhere}
@@ -117,5 +109,1641 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:40px 18px}
 @media(max-width:600px){
  .messages-layout{grid-template-columns:1fr}
  #messageContacts{max-height:220px}
+ #accountPanel{width:calc(100% - 16px);padding:12px}
+ #messagesPanel{padding:12px}
+}
+@media(max-width:480px){
+ main{padding-top:65px}
+ .browser-bar{padding:7px;gap:4px}
+ .browser-bar button{padding:9px 10px}
+ header{flex-wrap:wrap}
 }
 </style>
+</head>
+
+<body>
+
+<nav class="browser-bar">
+<button id="backButton" title="Back">←</button>
+<button id="forwardButton" title="Forward">→</button>
+<button id="refreshButton" title="Refresh">⟳</button>
+<input id="urlBar" placeholder="Enter a URL or millora:// address..." aria-label="Address bar">
+<button id="goButton">Go</button>
+</nav>
+
+<div class="sites-toolbar">
+<button id="createWebsiteButton">+ Create Website</button>
+</div>
+
+<div id="websiteCreator" class="website-creator" hidden>
+<h2>Create a Website</h2>
+<label>Website name</label>
+<input id="newSiteName" placeholder="My Website">
+<label>Custom website URL</label>
+<div style="display:flex;align-items:center;gap:5px">millora://<input id="newSiteUrl" placeholder="mywebsite"></div>
+<label>Website content</label>
+<textarea id="newSiteContent" placeholder="Write something about your website..."></textarea>
+
+<div class="ai-panel">
+<h3>✨ Create with Millora AI</h3>
+<p class="hint">Describe the website you want. Millora AI will generate its HTML for you.</p>
+<textarea id="makerAIPrompt" placeholder="Example: Make a modern portfolio website for a photographer..."></textarea>
+<div class="actions">
+<button class="primary" id="makerAIGenerate">Generate with AI</button>
+</div>
+<p id="makerAIStatus" class="ai-status">AI generation requires a working Millora AI connection.</p>
+<div id="makerAIPreviewWrap" hidden>
+<strong>Generated website preview</strong>
+<iframe id="makerAIPreview" class="ai-preview" title="Millora AI website preview" sandbox=""></iframe>
+</div>
+</div>
+
+<label>Visibility</label>
+<select id="siteVisibility">
+<option value="private">Private — only on this browser</option>
+<option value="public">Public — saved preference</option>
+</select>
+<div class="actions">
+<button class="primary" id="saveWebsiteButton">Create</button>
+<button class="secondary" id="closeWebsiteCreator">Cancel</button>
+</div>
+</div>
+
+<header>
+<div class="brand">Mill<span>ora</span></div>
+<div>
+<button class="secondary" id="accountButton">Log in / Sign up</button>
+<button class="secondary" id="themeButton">☾ Dark mode</button>
+</div>
+</header>
+
+<main id="homePage">
+<div class="logo">Mill<span>ora</span></div>
+<div class="subtitle">Search the world. Discover something new.</div>
+<form class="searchbox" action="https://www.google.com/search" method="GET">
+<input type="search" name="q" placeholder="Search anything..." required>
+<button type="submit">Search</button>
+</form>
+<div class="hint">Press Enter or click Search to search with Google.</div>
+
+<section id="sitesList">
+<h2>Your websites</h2>
+<div id="sitesContainer"></div>
+</section>
+
+<section id="accountPanel">
+<h2 id="accountHeading">Your Millora account</h2>
+<p id="accountDescription">Create an account or log in.</p>
+
+<div id="authFields">
+<label>Email</label>
+<input id="email" type="email" placeholder="Your email">
+<label>Password</label>
+<input id="password" type="password" placeholder="At least 6 characters">
+<div class="actions">
+<button class="primary" id="signupButton">Sign up</button>
+<button class="secondary" id="loginButton">Log in</button>
+</div>
+</div>
+
+<div id="profileArea" hidden>
+<div class="profile-card" id="profilePreview">
+<div class="profile-avatar" id="profileAvatarPreview">M</div>
+<h2 id="profileNamePreview">Your name</h2>
+<p class="profile-meta" id="profileUsernamePreview">@username</p>
+<p class="profile-bio" id="profileBioPreview">Add a short bio about yourself.</p>
+<div class="profile-sites">
+<h3>My websites</h3>
+<div id="profileSitesPreview" class="profile-meta">Your Millora websites will appear here.</div>
+</div>
+</div>
+
+<h3>Edit your profile</h3>
+<label>Display name</label>
+<input id="profileDisplayName" maxlength="40" placeholder="What should people call you?">
+<label>Username (3–20 characters: letters, numbers, underscores)</label>
+<input id="profileUsername" maxlength="20" placeholder="your_username">
+<label>Bio (max 160 characters)</label>
+<textarea id="profileBio" maxlength="160" placeholder="Tell people a little about yourself..."></textarea>
+<label>Avatar color</label>
+<input id="profileAvatarColor" type="color" value="#8064e9">
+<label>Profile picture</label>
+<input id="avatarFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+<div class="actions">
+<button id="chooseAvatarButton" type="button" class="secondary">Upload picture</button>
+<button id="removeAvatarButton" type="button" class="secondary" hidden>Remove picture</button>
+</div>
+<p class="profile-meta">PNG, JPG, WEBP, or GIF · Maximum 5 MB</p>
+<div class="actions">
+<button id="saveProfileButton" class="primary">Save profile</button>
+</div>
+<p class="profile-meta">Your profile name, username, bio, and avatar color are public profile information. Your email and password are not displayed.</p>
+</div>
+
+<section id="friendsPanel">
+<h3>Millora Friends</h3>
+<p class="profile-meta">Find people and manage friend requests.</p>
+<label for="friendSearchInput">Search by username</label>
+<input id="friendSearchInput" maxlength="20" placeholder="Search usernames...">
+<div class="actions">
+<button id="friendSearchButton" class="primary" type="button">Search</button>
+</div>
+<p id="friendsStatus" class="friend-note" aria-live="polite">Search for a username to get started.</p>
+<div id="friendSearchResults"></div>
+
+<div class="friends-section">
+<h3>Friend requests</h3>
+<div id="incomingRequests"></div>
+<div id="outgoingRequests"></div>
+</div>
+
+<div class="friends-section">
+<h3>Your friends</h3>
+<div id="friendsList"></div>
+</div>
+
+<section id="messagesPanel">
+<h3>Millora Messages 💬</h3>
+<p class="profile-meta">Private messages with accepted friends. Be respectful, and never share private information.</p>
+<div class="actions">
+<button id="refreshMessagesButton" class="secondary" type="button">🔄 Refresh messages</button>
+</div>
+<p id="messagesStatus" class="friend-note" aria-live="polite">Your conversations will appear here.</p>
+
+<div class="messages-layout">
+<div id="messageContacts">
+<strong>💌 Conversations</strong>
+<div id="messageContactsList" class="message-placeholder">No conversations yet.</div>
+</div>
+
+<div id="messageThread">
+<div id="messageThreadHeader"><strong>Select a friend</strong></div>
+<div id="messageList" aria-live="polite">
+<p class="message-placeholder">Choose a friend from your conversations to open a chat.</p>
+</div>
+
+<div id="messageComposeArea" hidden>
+<div class="message-compose">
+<input id="messageInput" maxlength="1000" placeholder="Write a message..." autocomplete="off">
+<button id="sendMessageButton" class="primary" type="button">Send ➤</button>
+</div>
+
+<div class="emoji-tools" aria-label="Quick emojis">
+<button type="button" class="quick-emoji" data-emoji="😀">😀</button>
+<button type="button" class="quick-emoji" data-emoji="😂">😂</button>
+<button type="button" class="quick-emoji" data-emoji="😭">😭</button>
+<button type="button" class="quick-emoji" data-emoji="❤️">❤️</button>
+<button type="button" class="quick-emoji" data-emoji="👍">👍</button>
+<button type="button" class="quick-emoji" data-emoji="🔥">🔥</button>
+<button type="button" class="quick-emoji" data-emoji="🎉">🎉</button>
+<button type="button" class="quick-emoji" data-emoji="✨">✨</button>
+</div>
+
+<div class="message-tools">
+<button id="chooseMessageImage" class="secondary" type="button">📷 Add image</button>
+<input id="messageImageInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+<button id="removeMessageImage" class="secondary" type="button" hidden>✖ Remove image</button>
+</div>
+
+<div id="messageImagePreview"></div>
+<p class="profile-meta">Maximum 1,000 characters and 5 MB per image. PNG, JPG, WEBP, or GIF.</p>
+
+<div class="message-tools">
+<button id="reportUserButton" class="secondary" type="button">🚩 Report user</button>
+<button id="blockUserButton" class="secondary" type="button">🚫 Block user</button>
+</div>
+</div>
+</div>
+</div>
+
+<div class="friends-section">
+<strong>Blocked users</strong>
+<div id="blockedUsersList" class="message-placeholder">No blocked users.</div>
+</div>
+</section>
+</section>
+
+<button id="logoutButton" class="secondary">Log out</button>
+<p id="status">Loading account system...</p>
+</section>
+</main>
+
+<section id="siteViewer" hidden></section>
+
+<div id="profileHoverCard" class="profile-hover-card" role="tooltip" aria-hidden="true">
+<div class="hover-top">
+<div class="hover-avatar" id="hoverAvatar">M</div>
+<div>
+<div class="hover-name" id="hoverName">Millora user</div>
+<div class="hover-username" id="hoverUsername">@username</div>
+</div>
+</div>
+<div class="hover-bio" id="hoverBio">This user hasn't added a bio yet.</div>
+<div class="hover-count" id="hoverWebsiteCount">0 websites</div>
+</div>
+
+<footer>Millora · Your search starts here ✨</footer>
+
+<script>
+const $=id=>document.getElementById(id);
+const urlBar=$("urlBar"),homePage=$("homePage"),siteViewer=$("siteViewer"),creator=$("websiteCreator");
+
+function getSites(){
+ try{
+  const s=JSON.parse(localStorage.getItem("milloraSites")||"[]");
+  return Array.isArray(s)?s:[];
+ }catch{return []}
+}
+function saveSites(sites){localStorage.setItem("milloraSites",JSON.stringify(sites))}
+function getDesign(site){
+ return site.design||{background:"#ffffff",color:"#202124",buttonColor:"#8064e9",layout:"left"};
+}
+function renderSites(){
+ const box=$("sitesContainer");box.replaceChildren();
+ const sites=getSites();
+ if(!sites.length){box.textContent="You haven't created any websites yet.";return}
+ sites.forEach(site=>{
+  const card=document.createElement("div");card.className="site-card";
+  const h=document.createElement("h3");h.textContent=site.name;
+  const p=document.createElement("p");p.textContent="millora://"+site.slug+" · "+site.visibility;
+  const open=document.createElement("button");open.textContent="Open website";open.onclick=()=>openSavedSite(site.slug);
+  const edit=document.createElement("button");edit.textContent="Edit website";edit.onclick=()=>openSavedSite(site.slug,true);
+  const del=document.createElement("button");del.textContent="Delete";del.className="delete-site";
+  del.onclick=()=>{if(confirm("Delete "+site.name+"?")){saveSites(getSites().filter(x=>x.slug!==site.slug));renderSites()}};
+  card.append(h,p,open,edit,del);box.append(card);
+ });
+}
+
+function showHome(){
+ siteViewer.hidden=true;homePage.hidden=false;urlBar.value="";
+}
+function openSavedSite(slug,editMode=false){
+ const site=getSites().find(s=>s.slug===slug);
+ if(!site){alert("Millora couldn't find that website.");return}
+ homePage.hidden=true;siteViewer.hidden=false;siteViewer.replaceChildren();
+ const design=getDesign(site);
+ siteViewer.style.background=design.background;
+ siteViewer.style.color=design.color;
+ siteViewer.style.textAlign=design.layout==="center"?"center":"left";
+ siteViewer.style.maxWidth=design.layout==="wide"?"1100px":"900px";
+
+ const back=document.createElement("button");back.textContent="← Back to Millora";back.className="secondary";back.onclick=showHome;
+ const address=document.createElement("p");address.textContent="millora://"+site.slug;address.style.color="var(--muted)";
+ const title=document.createElement("h1");title.textContent=site.name;
+ const content=document.createElement("p");content.textContent=site.content;
+ siteViewer.append(back,address,title,content);
+
+ (site.buttons||[]).forEach(b=>{
+  const a=document.createElement("a");a.className="site-button";a.textContent=b.label;
+  a.href=b.url;a.target="_blank";a.rel="noopener noreferrer";
+  a.style.background=design.buttonColor;a.style.color="#fff";siteViewer.append(a);
+ });
+
+ const edit=document.createElement("button");edit.textContent=editMode?"Close editor":"Edit website";edit.className="primary";edit.style.marginTop="20px";
+ edit.onclick=()=>openSavedSite(slug,!editMode);siteViewer.append(edit);
+ if(editMode)renderEditor(site);
+ urlBar.value="millora://"+site.slug;
+}
+
+function renderEditor(site){
+ const old=$("editorPanel");if(old)old.remove();
+ const d=getDesign(site);
+ const panel=document.createElement("div");panel.id="editorPanel";
+ panel.innerHTML=`
+ <h2>Website Visual Editor</h2>
+ <label>Website title</label><input id="editTitle">
+ <label>Website text / content</label><textarea id="editContent"></textarea>
+ <label>Background color</label><input id="editBackground" type="color">
+ <label>Text color</label><input id="editColor" type="color">
+ <label>Button color</label><input id="editButtonColor" type="color">
+ <label>Layout</label><select id="editLayout"><option value="left">Left aligned</option><option value="center">Centered</option><option value="wide">Wide</option></select>
+ <div class="ai-panel">
+ <h3>Millora AI Assistant</h3>
+ <p class="hint">Describe a change you want Millora AI to make to this website.</p>
+ <textarea id="editorAIPrompt" placeholder="Example: Make the page look more modern and add a pricing section..."></textarea>
+ <div class="actions"><button id="editorAIGenerate" class="primary">Ask Millora AI</button></div>
+ <p id="editorAIStatus" class="ai-status">Your current website will be sent to Millora AI as context.</p>
+ </div>
+ <h3>Website buttons</h3>
+ <label>Button text</label><input id="buttonLabel" placeholder="Visit my page">
+ <label>Button link</label><input id="buttonUrl" placeholder="https://example.com">
+ <button id="addSiteButton" class="secondary">+ Add button</button>
+ <div id="buttonList"></div>
+ <div class="actions"><button id="saveDesign" class="primary">Save changes</button><button id="cancelDesign" class="secondary">Cancel</button></div>
+ <p id="editorStatus" style="color:var(--muted);font-size:13px">Changes are saved only when you press Save changes.</p>`;
+ siteViewer.append(panel);
+
+ $("editTitle").value=site.name;
+ $("editContent").value=site.content;
+ $("editBackground").value=d.background;
+ $("editColor").value=d.color;
+ $("editButtonColor").value=d.buttonColor;
+ $("editLayout").value=d.layout;
+
+ let buttons=[...(site.buttons||[])];
+ function showButtons(){
+  const list=$("buttonList");list.replaceChildren();
+  buttons.forEach((b,i)=>{
+   const row=document.createElement("div");row.className="site-card";
+   const label=document.createElement("span");label.textContent=b.label+" — "+b.url+" ";
+   const remove=document.createElement("button");remove.textContent="Remove";remove.className="delete-site";
+   remove.onclick=()=>{buttons.splice(i,1);showButtons()};
+   row.append(label,remove);list.append(row);
+  });
+ }
+ showButtons();
+
+ $("editorAIGenerate").onclick=async()=>{
+  const request=$("editorAIPrompt").value.trim();
+  const aiStatus=$("editorAIStatus");
+  if(!request){aiStatus.textContent="Describe what you want changed first.";return}
+  if(!window.callMilloraAI){aiStatus.textContent="Millora AI is not connected yet.";return}
+  const currentHTML=site.html||`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${site.name}</title></head><body><h1>${site.name}</h1><p>${site.content||""}</p></body></html>`;
+  aiStatus.textContent="Millora AI is working...";
+  $("editorAIGenerate").disabled=true;
+  try{
+   const generated=await window.callMilloraAI("Modify this existing website HTML according to the user's request. Keep it as a complete, standalone HTML document with inline CSS. Do not add external scripts, tracking, or embeds. User request: "+request+"\n\nExisting website HTML:\n"+currentHTML);
+   const sites=getSites(),index=sites.findIndex(s=>s.slug===site.slug);
+   if(index<0)throw new Error("Website no longer exists.");
+   sites[index].html=generated;
+   saveSites(sites);
+   renderSites();
+   openSavedSite(site.slug,true);
+  }catch(error){
+   aiStatus.textContent="Millora AI error: "+error.message;
+  }finally{
+   const button=$("editorAIGenerate");
+   if(button)button.disabled=false;
+  }
+ };
+
+ $("addSiteButton").onclick=()=>{
+  const label=$("buttonLabel").value.trim(),url=$("buttonUrl").value.trim();
+  if(!label||!url){alert("Enter button text and a link.");return}
+  if(!/^https?:\/\//i.test(url)){alert("Use a link starting with https:// or http://");return}
+  buttons.push({label,url});$("buttonLabel").value="";$("buttonUrl").value="";showButtons();
+ };
+ $("saveDesign").onclick=()=>{
+  const sites=getSites(),index=sites.findIndex(s=>s.slug===site.slug);
+  if(index<0)return;
+  sites[index].name=$("editTitle").value.trim()||"Untitled website";
+  sites[index].content=$("editContent").value;
+  sites[index].design={
+   background:$("editBackground").value,
+   color:$("editColor").value,
+   buttonColor:$("editButtonColor").value,
+   layout:$("editLayout").value
+  };
+  sites[index].buttons=buttons;
+  try{saveSites(sites)}catch{alert("Couldn't save. Browser storage may be full.");return}
+  renderSites();openSavedSite(site.slug,true);
+  $("editorStatus").textContent="Saved!";
+ };
+ $("cancelDesign").onclick=()=>openSavedSite(site.slug,false);
+}
+
+function goToMilloraURL(input){
+ const url=input.trim();if(!url)return;
+ if(/^millora:\/\//i.test(url)){
+  const slug=url.slice(10).split("/")[0].toLowerCase();
+  if(getSites().some(s=>s.slug===slug)){openSavedSite(slug);return}
+  const shortcuts={youtube:"https://www.youtube.com",google:"https://www.google.com",roblox:"https://www.roblox.com",github:"https://github.com"};
+  if(shortcuts[slug]){location.href=shortcuts[slug];return}
+  alert("Millora couldn't find: "+slug);return;
+ }
+ if(/^https?:\/\//i.test(url)){location.href=url;return}
+ if(/^[\w.-]+\.[a-z]{2,}(\/.*)?$/i.test(url)){location.href="https://"+url;return}
+ location.href="https://www.google.com/search?q="+encodeURIComponent(url);
+}
+$("goButton").onclick=()=>goToMilloraURL(urlBar.value);
+urlBar.addEventListener("keydown",e=>{if(e.key==="Enter")goToMilloraURL(urlBar.value)});
+$("backButton").onclick=()=>!siteViewer.hidden?showHome():history.back();
+$("forwardButton").onclick=()=>history.forward();
+$("refreshButton").onclick=()=>!siteViewer.hidden?openSavedSite(urlBar.value.slice(10)):location.reload();
+
+function setTheme(dark){
+ document.body.classList.toggle("dark",dark);
+ $("themeButton").textContent=dark?"☀ Light mode":"☾ Dark mode";
+ localStorage.setItem("millora-theme",dark?"dark":"light");
+}
+setTheme(localStorage.getItem("millora-theme")==="dark");
+$("themeButton").onclick=()=>setTheme(!document.body.classList.contains("dark"));
+$("accountButton").onclick=()=>$("accountPanel").classList.toggle("open");
+
+let pendingGeneratedHTML="";
+$("createWebsiteButton").onclick=()=>creator.hidden=!creator.hidden;
+$("closeWebsiteCreator").onclick=()=>creator.hidden=true;
+
+$("makerAIGenerate").onclick=async()=>{
+ const prompt=$("makerAIPrompt").value.trim();
+ const status=$("makerAIStatus");
+ if(!prompt){status.textContent="Describe the website you want first.";return}
+ if(!window.callMilloraAI){status.textContent="Millora AI is not connected yet.";return}
+ status.textContent="Millora AI is creating your website...";
+ $("makerAIGenerate").disabled=true;
+ try{
+  pendingGeneratedHTML=await window.callMilloraAI("Create a complete, polished, responsive standalone website in HTML for this request. Use inline CSS. Do not include external scripts, tracking, or embeds. Request: "+prompt);
+  $("makerAIPreview").srcdoc=pendingGeneratedHTML;
+  $("makerAIPreviewWrap").hidden=false;
+  status.textContent="Website generated! Add a name and Millora URL below, then click Create to save it.";
+ }catch(error){
+  pendingGeneratedHTML="";
+  status.textContent="Millora AI error: "+error.message;
+ }finally{
+  $("makerAIGenerate").disabled=false;
+ }
+};
+
+$("saveWebsiteButton").onclick=()=>{
+ const name=$("newSiteName").value.trim(),slug=$("newSiteUrl").value.trim().toLowerCase(),content=$("newSiteContent").value.trim(),visibility=$("siteVisibility").value;
+ if(!name||!slug||(!content&&!pendingGeneratedHTML)){alert("Please enter a website name and URL, and either write content or generate the website with AI.");return}
+ if(!/^[a-z0-9-]+$/.test(slug)){alert("Use lowercase letters, numbers, and hyphens in your URL.");return}
+ const sites=getSites();
+ if(sites.some(s=>s.slug===slug)){alert("That Millora URL is already taken!");return}
+ sites.push({name,slug,content,html:pendingGeneratedHTML||"",visibility,design:{background:"#ffffff",color:"#202124",buttonColor:"#8064e9",layout:"left"},buttons:[]});
+ try{saveSites(sites)}catch{alert("Couldn't save your website. Browser storage may be full.");return}
+ ["newSiteName","newSiteUrl","newSiteContent"].forEach(id=>$(id).value="");
+ $("siteVisibility").value="private";creator.hidden=true;renderSites();
+ alert("Website created! Open millora://"+slug);
+};
+renderSites();
+</script>
+
+<script type="module">
+import {createClient} from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+const SUPABASE_URL="https://xkvbhfjezmxipbqynezs.supabase.co";
+const SUPABASE_KEY="sb_publishable_w_IiOxzbLWvj7nT8S4fvUg_R-C1GtTY";
+const $=id=>document.getElementById(id);
+const status=$("status"),authFields=$("authFields"),logoutButton=$("logoutButton"),profileArea=$("profileArea");
+
+try{
+const supabase=createClient(SUPABASE_URL,SUPABASE_KEY);
+let activeUser=null;
+ console.log("Millora logged-in user:", activeUser?.id);
+
+function renderProfile(profile){
+ const displayName=profile?.display_name||"Millora user";
+ const username=profile?.username||"username_not_set";
+ const bio=profile?.bio||"Add a short bio about yourself.";
+ const color=profile?.avatar_color||"#8064e9";
+ const avatarUrl=profile?.avatar_url||"";
+
+ $("profileNamePreview").textContent=displayName;
+ $("profileUsernamePreview").textContent="@"+username;
+ $("profileBioPreview").textContent=bio;
+
+ const avatar=$("profileAvatarPreview");
+ avatar.replaceChildren();
+ avatar.style.background=color;
+ if(avatarUrl){
+  const img=document.createElement("img");
+  img.src=avatarUrl;img.alt="Profile picture";
+  avatar.append(img);
+ }else{
+  avatar.textContent=(displayName.trim()[0]||"M").toUpperCase();
+ }
+
+ $("removeAvatarButton").hidden=!avatarUrl;
+
+ const sites=JSON.parse(localStorage.getItem("milloraSites")||"[]");
+ const safeSites=Array.isArray(sites)?sites:[];
+ const list=$("profileSitesPreview");
+ list.replaceChildren();
+
+ if(!safeSites.length){
+  list.textContent="No websites created on this browser yet.";
+ }else{
+  safeSites.forEach(site=>{
+   const item=document.createElement("p");
+   item.textContent=site.name+" · millora://"+site.slug;
+   list.append(item);
+  });
+ }
+
+ const hoverAvatar=$("hoverAvatar");
+ hoverAvatar.replaceChildren();
+ hoverAvatar.style.background=color;
+ if(avatarUrl){
+  const img=document.createElement("img");
+  img.src=avatarUrl;img.alt="";
+  hoverAvatar.append(img);
+ }else{
+  hoverAvatar.textContent=(displayName.trim()[0]||"M").toUpperCase();
+ }
+
+ $("hoverName").textContent=displayName;
+ $("hoverUsername").textContent="@"+username;
+ $("hoverBio").textContent=bio||"This user hasn't added a bio yet.";
+ $("hoverWebsiteCount").textContent=safeSites.length+" website"+(safeSites.length===1?"":"s")+" on this browser";
+}
+
+async function loadProfile(user){
+ activeUser=user;
+
+ if(!user){
+  $("accountHeading").textContent="Your Millora account";
+  $("accountDescription").textContent="Create an account or log in.";
+  authFields.style.display="block";
+  profileArea.hidden=true;
+  logoutButton.style.display="none";
+  $("accountButton").textContent="Log in / Sign up";
+  return;
+ }
+
+ $("accountHeading").textContent="My Millora profile";
+ $("accountDescription").textContent="Your account profile and websites.";
+ authFields.style.display="none";
+ profileArea.hidden=false;
+ logoutButton.style.display="inline-block";
+ $("accountButton").textContent="My account";
+ status.textContent="Loading your profile...";
+
+ const {data,error}=await supabase.from("profiles")
+  .select("username,display_name,bio,avatar_color,avatar_url,avatar_path")
+  .eq("id",user.id).maybeSingle();
+
+ if(error){
+  status.textContent="Profile database isn't ready yet. "+error.message;
+  return;
+ }
+
+ const profile=data||{
+  username:"",display_name:"",bio:"",
+  avatar_color:"#8064e9",avatar_url:"",avatar_path:""
+ };
+
+ $("profileDisplayName").value=profile.display_name||"";
+ $("profileUsername").value=profile.username||"";
+ $("profileBio").value=profile.bio||"";
+ $("profileAvatarColor").value=profile.avatar_color||"#8064e9";
+ renderProfile(profile);
+ status.textContent=data?"Profile loaded.":"Welcome! Create your Millora profile below.";
+
+ if(data){
+  await loadFriends();
+  await loadMessages();
+ }
+}
+
+const hoverCard=$("profileHoverCard");
+let hoverHideTimer=null;
+
+function showProfileHover(anchor){
+ clearTimeout(hoverHideTimer);
+ const rect=anchor.getBoundingClientRect();
+ hoverCard.style.left=Math.max(12,Math.min(rect.left,window.innerWidth-312))+"px";
+ hoverCard.style.top=Math.min(window.innerHeight-190,rect.bottom+8)+"px";
+ hoverCard.classList.add("visible");
+ hoverCard.setAttribute("aria-hidden","false");
+}
+
+function hideProfileHover(){
+ hoverHideTimer=setTimeout(()=>{
+  hoverCard.classList.remove("visible");
+  hoverCard.setAttribute("aria-hidden","true");
+ },180);
+}
+
+[$("profileAvatarPreview"),$("profileUsernamePreview")].forEach(el=>{
+ el.addEventListener("mouseenter",()=>showProfileHover(el));
+ el.addEventListener("mouseleave",hideProfileHover);
+ el.addEventListener("focus",()=>showProfileHover(el));
+ el.addEventListener("blur",hideProfileHover);
+});
+
+hoverCard.addEventListener("mouseenter",()=>clearTimeout(hoverHideTimer));
+hoverCard.addEventListener("mouseleave",hideProfileHover);
+
+$("chooseAvatarButton").onclick=()=> $("avatarFile").click();
+
+$("avatarFile").onchange=async()=>{
+ const file=$("avatarFile").files?.[0];
+ if(!file)return;
+
+ const allowed=["image/png","image/jpeg","image/webp","image/gif"];
+ if(!allowed.includes(file.type)){
+  status.textContent="Choose a PNG, JPG, WEBP, or GIF image.";
+  return;
+ }
+
+ if(file.size>5*1024*1024){
+  status.textContent="That image is too large. Maximum size is 5 MB.";
+  return;
+ }
+
+ if(!activeUser){
+  status.textContent="Please log in first.";
+  return;
+ }
+
+ const ext=({"image/png":"png","image/jpeg":"jpg","image/webp":"webp","image/gif":"gif"})[file.type];
+ const path=activeUser.id+"/"+Date.now()+"."+ext;
+ $("chooseAvatarButton").disabled=true;
+ status.textContent="Uploading profile picture...";
+
+ try{
+  const {data:profileExists,error:profileCheckError}=await supabase.from("profiles")
+   .select("id").eq("id",activeUser.id).maybeSingle();
+
+  if(profileCheckError)throw profileCheckError;
+  if(!profileExists)throw new Error("Save your profile first, then upload your picture.");
+
+  const {error:uploadError}=await supabase.storage.from("avatars")
+   .upload(path,file,{contentType:file.type,upsert:false});
+
+  if(uploadError)throw uploadError;
+
+  const {data:publicData}=supabase.storage.from("avatars").getPublicUrl(path);
+
+  const {data:oldProfile,error:readError}=await supabase.from("profiles")
+   .select("avatar_path").eq("id",activeUser.id).maybeSingle();
+
+  if(readError)throw readError;
+
+  const {error:saveError}=await supabase.from("profiles").update({
+   avatar_url:publicData.publicUrl,
+   avatar_path:path,
+   updated_at:new Date().toISOString()
+  }).eq("id",activeUser.id);
+
+  if(saveError)throw saveError;
+
+  if(oldProfile?.avatar_path){
+   await supabase.storage.from("avatars").remove([oldProfile.avatar_path]);
+  }
+
+  const {data:profileData}=await supabase.from("profiles")
+   .select("username,display_name,bio,avatar_color,avatar_url,avatar_path")
+   .eq("id",activeUser.id).maybeSingle();
+
+  renderProfile(profileData||{avatar_url:publicData.publicUrl,avatar_path:path});
+  status.textContent="Profile picture uploaded!";
+ }catch(error){
+  status.textContent="Avatar upload failed: "+error.message;
+ }finally{
+  $("chooseAvatarButton").disabled=false;
+  $("avatarFile").value="";
+ }
+};
+
+$("removeAvatarButton").onclick=async()=>{
+ if(!activeUser)return;
+ $("removeAvatarButton").disabled=true;
+ status.textContent="Removing profile picture...";
+
+ try{
+  const {data:profileData,error:readError}=await supabase.from("profiles")
+   .select("avatar_path").eq("id",activeUser.id).maybeSingle();
+
+  if(readError)throw readError;
+
+  const {error:updateError}=await supabase.from("profiles").update({
+   avatar_url:null,avatar_path:null,updated_at:new Date().toISOString()
+  }).eq("id",activeUser.id);
+
+  if(updateError)throw updateError;
+
+  if(profileData?.avatar_path){
+   await supabase.storage.from("avatars").remove([profileData.avatar_path]);
+  }
+
+  const {data:updated}=await supabase.from("profiles")
+   .select("username,display_name,bio,avatar_color,avatar_url,avatar_path")
+   .eq("id",activeUser.id).maybeSingle();
+
+  renderProfile(updated||{});
+  status.textContent="Profile picture removed.";
+ }catch(error){
+  status.textContent="Couldn't remove picture: "+error.message;
+ }finally{
+  $("removeAvatarButton").disabled=false;
+ }
+};
+
+const friendsStatus=$("friendsStatus");
+const searchResults=$("friendSearchResults");
+const incoming=$("incomingRequests");
+const outgoing=$("outgoingRequests");
+const friends=$("friendsList");
+
+function friendRow(p,actions=[]){
+ const row=document.createElement("div");
+ row.className="friend-row";
+
+ const av=document.createElement("div");
+ av.className="friend-mini-avatar";
+ av.style.background=p.avatar_color||"#8064e9";
+
+ if(p.avatar_url){
+  const img=document.createElement("img");
+  img.src=p.avatar_url;
+  img.alt="";
+  av.append(img);
+ }else{
+  av.textContent=(p.display_name||p.username||"?")[0].toUpperCase();
+ }
+
+ row.append(av);
+
+ const info=document.createElement("div");
+ info.className="friend-row-info";
+
+ const n=document.createElement("strong");
+ n.textContent=p.display_name||"Millora user";
+
+ const u=document.createElement("small");
+ u.textContent="@"+p.username;
+
+ info.append(n,u);
+ row.append(info);
+
+ if(actions.length){
+  const box=document.createElement("div");
+  box.className="friend-row-actions";
+
+  actions.forEach(a=>{
+   const b=document.createElement("button");
+   b.type="button";
+   b.textContent=a.label;
+   b.className=a.primary?"primary":"secondary";
+   b.onclick=a.run;
+   box.append(b);
+  });
+
+  row.append(box);
+ }
+
+ return row;
+}
+
+function empty(el,msg){
+ const p=document.createElement("p");
+ p.className="friend-note";
+ p.textContent=msg;
+ el.append(p);
+}
+
+async function loadFriends(){
+ if(!activeUser)return;
+
+ [incoming,outgoing,friends].forEach(x=>x.replaceChildren());
+
+ const {data:rs,error}=await supabase.from("friend_requests")
+  .select("id,sender_id,receiver_id,status,created_at")
+  .or("sender_id.eq."+activeUser.id+",receiver_id.eq."+activeUser.id)
+  .order("created_at",{ascending:false});
+
+ if(error){
+  friendsStatus.textContent="Friends database isn't ready. "+error.message;
+  empty(incoming,error.message);
+  return;
+ }
+
+ const rows=rs||[];
+ const ids=[...new Set(rows.flatMap(r=>[r.sender_id,r.receiver_id]).filter(id=>id!==activeUser.id))];
+ const byId={};
+
+ if(ids.length){
+  const {data,error:e}=await supabase.from("profiles")
+   .select("id,username,display_name,avatar_color,avatar_url")
+   .in("id",ids);
+
+  if(e){
+   friendsStatus.textContent=e.message;
+   return;
+  }
+
+  (data||[]).forEach(p=>byId[p.id]=p);
+ }
+
+ const ins=rows.filter(r=>r.receiver_id===activeUser.id&&r.status==="pending");
+ const outs=rows.filter(r=>r.sender_id===activeUser.id&&r.status==="pending");
+ const accepted=rows.filter(r=>r.status==="accepted");
+
+ ins.forEach(r=>byId[r.sender_id]&&incoming.append(friendRow(byId[r.sender_id],[
+  {label:"Accept",primary:true,run:()=>changeRequest(r.id,"accepted")},
+  {label:"Decline",run:()=>changeRequest(r.id,"declined")}
+ ])));
+
+ outs.forEach(r=>byId[r.receiver_id]&&outgoing.append(friendRow(byId[r.receiver_id],[
+  {label:"Cancel",run:()=>deleteRequest(r.id)}
+ ])));
+
+ accepted.forEach(r=>{
+  const id=r.sender_id===activeUser.id?r.receiver_id:r.sender_id;
+  if(byId[id]){
+   friends.append(friendRow(byId[id],[
+    {label:"Remove",run:()=>removeFriend(r.id,byId[id].username)}
+   ]));
+  }
+ });
+
+ if(!incoming.children.length)empty(incoming,"No incoming requests.");
+ if(!outgoing.children.length)empty(outgoing,"No outgoing requests.");
+ if(!friends.children.length)empty(friends,"You haven't added any friends yet.");
+
+ friendsStatus.textContent="Friends loaded.";
+}
+
+async function changeRequest(id,newStatus){
+ const {error}=await supabase.from("friend_requests")
+  .update({status:newStatus,updated_at:new Date().toISOString()}).eq("id",id);
+
+ if(error){
+  friendsStatus.textContent=error.message;
+  return;
+ }
+
+ await loadFriends();
+ await loadMessages();
+}
+
+async function deleteRequest(id){
+ const {error}=await supabase.from("friend_requests").delete().eq("id",id);
+
+ if(error){
+  friendsStatus.textContent=error.message;
+  return;
+ }
+
+ await loadFriends();
+ await loadMessages();
+}
+
+async function removeFriend(id,username){
+ if(!confirm("Remove @"+username+" from your friends?"))return;
+ await deleteRequest(id);
+}
+
+async function searchFriends(){
+ if(!activeUser){
+  friendsStatus.textContent="Please log in first.";
+  return;
+ }
+
+ const term=$("friendSearchInput").value.trim().replace(/^@/,"").toLowerCase();
+ searchResults.replaceChildren();
+
+ if(term.length<2){
+  friendsStatus.textContent="Enter at least 2 characters.";
+  return;
+ }
+
+ friendsStatus.textContent="Searching...";
+
+ const {data:matches,error}=await supabase.from("profiles")
+  .select("id,username,display_name,avatar_color,avatar_url")
+  .ilike("username","%"+term+"%")
+  .neq("id",activeUser.id).limit(10);
+
+ if(error){
+  friendsStatus.textContent=error.message;
+  return;
+ }
+
+ if(!matches?.length){
+  friendsStatus.textContent="No matching users.";
+  return;
+ }
+
+ const {data:rels,error:e}=await supabase.from("friend_requests")
+  .select("id,sender_id,receiver_id,status")
+  .or("sender_id.eq."+activeUser.id+",receiver_id.eq."+activeUser.id);
+
+ if(e){
+  friendsStatus.textContent=e.message;
+  return;
+ }
+
+ matches.forEach(p=>{
+  const rel=(rels||[]).find(r=>
+   (r.sender_id===activeUser.id&&r.receiver_id===p.id)||
+   (r.sender_id===p.id&&r.receiver_id===activeUser.id)
+  );
+
+  let a=[];
+
+  if(!rel){
+   a=[{label:"Add friend",primary:true,run:()=>sendRequest(p.id,p.username)}];
+  }else if(rel.status==="accepted"){
+   a=[{label:"Already friends",run:()=>{}}];
+  }else if(rel.status==="pending"){
+   a=[{label:rel.sender_id===activeUser.id?"Request sent":"They requested you",run:()=>{}}];
+  }else{
+   a=[{label:"Send new request",primary:true,run:()=>sendRequest(p.id,p.username,rel.id)}];
+  }
+
+  searchResults.append(friendRow(p,a));
+ });
+
+ friendsStatus.textContent="Found "+matches.length+" user(s).";
+}
+
+async function sendRequest(receiverId,username,oldId){
+ if(oldId){
+  const {error}=await supabase.from("friend_requests").delete().eq("id",oldId);
+  if(error){
+   friendsStatus.textContent=error.message;
+   return;
+  }
+ }
+
+ const {error}=await supabase.from("friend_requests").insert({
+  sender_id:activeUser.id,
+  receiver_id:receiverId,
+  status:"pending"
+ });
+
+ if(error){
+  friendsStatus.textContent="Couldn't send request: "+error.message;
+  return;
+ }
+
+ friendsStatus.textContent="Request sent to @"+username+"!";
+ await searchFriends();
+ await loadFriends();
+}
+
+$("friendSearchButton").onclick=searchFriends;
+$("friendSearchInput").addEventListener("keydown",e=>{
+ if(e.key==="Enter")searchFriends();
+});
+
+/* MESSAGES */
+const messagesStatus=$("messagesStatus");
+const contactsList=$("messageContactsList");
+const messageList=$("messageList");
+const threadHeader=$("messageThreadHeader");
+const composeArea=$("messageComposeArea");
+
+let activeConversationId=null;
+let activeConversationProfile=null;
+let selectedMessageImage=null;
+let previewObjectUrl=null;
+
+function formatMessageTime(value){
+ try{return new Date(value).toLocaleString()}catch{return ""}
+}
+
+function clearImagePreview(){
+ if(previewObjectUrl){
+  URL.revokeObjectURL(previewObjectUrl);
+  previewObjectUrl=null;
+ }
+ $("messageImagePreview").replaceChildren();
+ $("messageImageInput").value="";
+ $("removeMessageImage").hidden=true;
+ selectedMessageImage=null;
+}
+
+async function renderMessageBubble(m){
+ const bubble=document.createElement("div");
+ bubble.className="message-bubble"+(m.sender_id===activeUser.id?" mine":"");
+
+ if(m.body){
+  const body=document.createElement("span");
+  body.textContent=m.body;
+  bubble.append(body);
+ }
+
+ if(m.image_path){
+  const {data,error}=await supabase.storage
+   .from("message-images")
+   .createSignedUrl(m.image_path,3600);
+
+  if(!error&&data?.signedUrl){
+   const img=document.createElement("img");
+   img.src=data.signedUrl;
+   img.alt="Image attachment";
+   img.className="message-image";
+   img.loading="lazy";
+   bubble.append(img);
+  }else{
+   const unavailable=document.createElement("p");
+   unavailable.textContent="📷 Image unavailable.";
+   bubble.append(unavailable);
+  }
+ }
+
+ const time=document.createElement("small");
+ time.className="message-time";
+ time.textContent=formatMessageTime(m.created_at);
+ bubble.append(time);
+
+ messageList.append(bubble);
+}
+
+async function loadMessages(){
+ if(!activeUser)return;
+
+ messagesStatus.textContent="Loading conversations...";
+ contactsList.replaceChildren();
+
+ const {data:rels,error:relError}=await supabase.from("friend_requests")
+  .select("sender_id,receiver_id")
+  .eq("status","accepted")
+  .or("sender_id.eq."+activeUser.id+",receiver_id.eq."+activeUser.id);
+
+ if(relError){
+  messagesStatus.textContent="Friends database error: "+relError.message;
+  return;
+ }
+
+ const peerIds=[...new Set((rels||[]).map(r=>
+  r.sender_id===activeUser.id?r.receiver_id:r.sender_id
+ ))];
+
+ const {data:blocked,error:blockError}=await supabase.from("message_blocks")
+  .select("blocked_id").eq("blocker_id",activeUser.id);
+
+ if(blockError){
+  messagesStatus.textContent="Messaging database error: "+blockError.message;
+  return;
+ }
+
+ const blockedIds=new Set((blocked||[]).map(x=>x.blocked_id));
+ const visiblePeerIds=peerIds.filter(id=>!blockedIds.has(id));
+
+ if(!visiblePeerIds.length){
+  contactsList.textContent="No available conversations yet. Add a friend first.";
+  messagesStatus.textContent="Messages are ready when you have accepted friends.";
+  await loadBlockedUsers();
+  return;
+ }
+
+ const {data:profiles,error:profileError}=await supabase.from("profiles")
+  .select("id,username,display_name,avatar_color,avatar_url")
+  .in("id",visiblePeerIds);
+
+ if(profileError){
+  messagesStatus.textContent=profileError.message;
+  return;
+ }
+
+ const {data:allMessages,error:messageError}=await supabase.from("direct_messages")
+  .select("id,sender_id,receiver_id,body,image_path,created_at,read_at")
+  .or("sender_id.eq."+activeUser.id+",receiver_id.eq."+activeUser.id)
+  .order("created_at",{ascending:false}).limit(300);
+
+ if(messageError){
+  messagesStatus.textContent="Couldn't load conversations: "+messageError.message;
+  return;
+ }
+
+ const byId={};
+ (profiles||[]).forEach(p=>byId[p.id]=p);
+
+ const contacts=visiblePeerIds.filter(id=>byId[id]).map(id=>{
+  const related=(allMessages||[]).filter(m=>
+   (m.sender_id===activeUser.id&&m.receiver_id===id)||
+   (m.sender_id===id&&m.receiver_id===activeUser.id)
+  );
+
+  const unread=related.filter(m=>
+   m.receiver_id===activeUser.id&&m.sender_id===id&&!m.read_at
+  ).length;
+
+  return {profile:byId[id],latest:related[0]||null,unread};
+ }).sort((a,b)=>new Date(b.latest?.created_at||0)-new Date(a.latest?.created_at||0));
+
+ contacts.forEach(c=>{
+  const row=friendRow(c.profile,[{
+   label:c.unread?"Open · "+c.unread+" new":"Open chat",
+   primary:true,
+   run:()=>openConversation(c.profile.id)
+  }]);
+
+  const preview=document.createElement("small");
+  preview.className="profile-meta";
+
+  if(c.latest){
+   const previewText=c.latest.body||
+    (c.latest.image_path?"📷 Image":"Message");
+   preview.textContent=(c.latest.sender_id===activeUser.id?"You: ":"")+previewText.slice(0,55);
+  }else{
+   preview.textContent="No messages yet";
+  }
+
+  row.querySelector(".friend-row-info").append(preview);
+  contactsList.append(row);
+ });
+
+ if(!contacts.length)contactsList.textContent="No available conversations.";
+
+ messagesStatus.textContent="Conversations loaded.";
+ await loadBlockedUsers();
+}
+
+async function openConversation(peerId){
+ if(!activeUser){
+  messagesStatus.textContent="Please log in first.";
+  return;
+ }
+
+ activeConversationId=peerId;
+ messagesStatus.textContent="Loading conversation...";
+ messageList.replaceChildren();
+ composeArea.hidden=false;
+
+ const {data:profile,error:profileError}=await supabase.from("profiles")
+  .select("id,username,display_name,avatar_color,avatar_url")
+  .eq("id",peerId).maybeSingle();
+
+ if(profileError||!profile){
+  messagesStatus.textContent=profileError?.message||"Couldn't find this friend.";
+  composeArea.hidden=true;
+  return;
+ }
+
+ activeConversationProfile=profile;
+ threadHeader.replaceChildren();
+
+ const heading=document.createElement("strong");
+ heading.textContent=(profile.display_name||"Millora user")+" · @"+profile.username;
+ threadHeader.append(heading);
+
+ const {data:msgs,error}=await supabase.from("direct_messages")
+  .select("id,sender_id,receiver_id,body,image_path,created_at,read_at")
+  .or(
+   "and(sender_id.eq."+activeUser.id+",receiver_id.eq."+peerId+"),"+
+   "and(sender_id.eq."+peerId+",receiver_id.eq."+activeUser.id+")"
+  )
+  .order("created_at",{ascending:true}).limit(100);
+
+ if(error){
+  messagesStatus.textContent="Couldn't load messages: "+error.message;
+  messageList.textContent="Messages unavailable.";
+  return;
+ }
+
+ if(!msgs?.length){
+  const emptyMsg=document.createElement("p");
+  emptyMsg.className="message-placeholder";
+  emptyMsg.textContent="No messages yet. Say hello! 👋";
+  messageList.append(emptyMsg);
+ }else{
+  for(const msg of msgs){
+   await renderMessageBubble(msg);
+  }
+ }
+
+ const {error:readError}=await supabase.from("direct_messages")
+  .update({read_at:new Date().toISOString()})
+  .eq("sender_id",peerId)
+  .eq("receiver_id",activeUser.id)
+  .is("read_at",null);
+
+ if(readError){
+  messagesStatus.textContent="Conversation opened. Read status couldn't update: "+readError.message;
+ }else{
+  messagesStatus.textContent="Chatting with @"+profile.username+" 💬";
+ }
+
+ messageList.scrollTop=messageList.scrollHeight;
+ await loadMessages();
+}
+
+async function sendMessage(){
+ if(!activeUser){
+  messagesStatus.textContent="Please log in first.";
+  return;
+ }
+
+ if(!activeConversationId){
+  messagesStatus.textContent="Open a friend's chat before sending a message.";
+  return;
+ }
+
+ const body=$("messageInput").value.trim();
+ const file=selectedMessageImage;
+
+ if(!body&&!file){
+  messagesStatus.textContent="Write a message or choose an image first.";
+  return;
+ }
+
+ if(body.length>1000){
+  messagesStatus.textContent="Messages must be 1,000 characters or fewer.";
+  return;
+ }
+
+ if(file){
+  const allowed=["image/png","image/jpeg","image/webp","image/gif"];
+
+  if(!allowed.includes(file.type)){
+   messagesStatus.textContent="Choose a PNG, JPG, WEBP, or GIF image.";
+   return;
+  }
+
+  if(file.size>5*1024*1024){
+   messagesStatus.textContent="Images must be 5 MB or smaller.";
+   return;
+  }
+ }
+
+ const sendButton=$("sendMessageButton");
+ sendButton.disabled=true;
+
+ let imagePath=null;
+
+ try{
+  messagesStatus.textContent="Sending message...";
+
+  if(file){
+   const ext={
+    "image/png":"png",
+    "image/jpeg":"jpg",
+    "image/webp":"webp",
+    "image/gif":"gif"
+   }[file.type];
+
+   imagePath=activeUser.id+"/"+Date.now()+"-"+crypto.randomUUID()+"."+ext;
+
+   const {error:uploadError}=await supabase.storage
+    .from("message-images")
+    .upload(imagePath,file,{
+     contentType:file.type,
+     upsert:false
+    });
+
+   if(uploadError)throw uploadError;
+  }
+
+  const {error}=await supabase.from("direct_messages").insert({
+   sender_id:activeUser.id,
+   receiver_id:activeConversationId,
+   body:body,
+   image_path:imagePath
+  });
+
+  if(error){
+   if(imagePath){
+    await supabase.storage.from("message-images").remove([imagePath]);
+   }
+   throw error;
+  }
+
+  $("messageInput").value="";
+  clearImagePreview();
+
+  messagesStatus.textContent="Message sent! ✨";
+  await openConversation(activeConversationId);
+
+ }catch(error){
+  messagesStatus.textContent="Couldn't send message: "+error.message;
+ }finally{
+  sendButton.disabled=false;
+ }
+}
+
+/* IMAGE PICKER AND PREVIEW */
+$("chooseMessageImage").onclick=()=>{
+ if(!activeConversationId){
+  messagesStatus.textContent="Open a friend's chat first.";
+  return;
+ }
+ $("messageImageInput").click();
+};
+
+$("messageImageInput").onchange=()=>{
+ const file=$("messageImageInput").files?.[0];
+ if(!file)return;
+
+ const allowed=["image/png","image/jpeg","image/webp","image/gif"];
+
+ if(!allowed.includes(file.type)){
+  messagesStatus.textContent="Choose a PNG, JPG, WEBP, or GIF image.";
+  $("messageImageInput").value="";
+  return;
+ }
+
+ if(file.size>5*1024*1024){
+  messagesStatus.textContent="Image must be 5 MB or smaller.";
+  $("messageImageInput").value="";
+  return;
+ }
+
+ if(previewObjectUrl)URL.revokeObjectURL(previewObjectUrl);
+
+ selectedMessageImage=file;
+ previewObjectUrl=URL.createObjectURL(file);
+
+ const preview=$("messageImagePreview");
+ preview.replaceChildren();
+
+ const label=document.createElement("p");
+ label.textContent="📷 Image ready to send:";
+ const img=document.createElement("img");
+ img.src=previewObjectUrl;
+ img.alt="Image preview";
+
+ preview.append(label,img);
+ $("removeMessageImage").hidden=false;
+ messagesStatus.textContent="Image ready to send! ✨";
+};
+
+$("removeMessageImage").onclick=()=>{
+ clearImagePreview();
+ messagesStatus.textContent="Image removed.";
+};
+
+/* QUICK EMOJIS */
+document.querySelectorAll(".quick-emoji").forEach(button=>{
+ button.onclick=()=>{
+  const input=$("messageInput");
+  const emoji=button.dataset.emoji;
+  const start=input.selectionStart??input.value.length;
+  const end=input.selectionEnd??input.value.length;
+
+  input.value=input.value.slice(0,start)+emoji+input.value.slice(end);
+  input.focus();
+  const position=start+emoji.length;
+  input.setSelectionRange(position,position);
+ };
+});
+
+async function blockCurrentUser(){
+ if(!activeConversationId||!activeConversationProfile)return;
+
+ if(!confirm("Block @"+activeConversationProfile.username+"? They won't be able to message you, and you won't see this conversation."))return;
+
+ const peerId=activeConversationId;
+
+ const {error}=await supabase.from("message_blocks").insert({
+  blocker_id:activeUser.id,
+  blocked_id:peerId
+ });
+
+ if(error){
+  messagesStatus.textContent="Couldn't block user: "+error.message;
+  return;
+ }
+
+ await supabase.from("friend_requests").delete()
+  .eq("status","accepted")
+  .or(
+   "and(sender_id.eq."+activeUser.id+",receiver_id.eq."+peerId+"),"+
+   "and(sender_id.eq."+peerId+",receiver_id.eq."+activeUser.id+")"
+  );
+
+ activeConversationId=null;
+ activeConversationProfile=null;
+ composeArea.hidden=true;
+ clearImagePreview();
+ threadHeader.textContent="Select a friend";
+ messageList.textContent="This conversation is blocked.";
+ messagesStatus.textContent="User blocked.";
+
+ await loadFriends();
+ await loadMessages();
+}
+
+async function reportCurrentUser(){
+ if(!activeConversationId||!activeConversationProfile)return;
+
+ const reason=prompt("Why are you reporting @"+activeConversationProfile.username+"? Please provide at least 10 characters.");
+ if(reason===null)return;
+
+ const clean=reason.trim();
+
+ if(clean.length<10||clean.length>500){
+  messagesStatus.textContent="Report details must be 10–500 characters.";
+  return;
+ }
+
+ const {error}=await supabase.from("message_reports").insert({
+  reporter_id:activeUser.id,
+  reported_user_id:activeConversationId,
+  reason:clean
+ });
+
+ messagesStatus.textContent=error?
+  "Couldn't submit report: "+error.message:
+  "Report submitted. Thank you for helping keep Millora safer.";
+}
+
+async function loadBlockedUsers(){
+ const box=$("blockedUsersList");
+ if(!activeUser||!box)return;
+
+ box.replaceChildren();
+
+ const {data:rows,error}=await supabase.from("message_blocks")
+  .select("blocked_id,created_at")
+  .eq("blocker_id",activeUser.id);
+
+ if(error){
+  box.textContent="Couldn't load blocked users.";
+  return;
+ }
+
+ if(!rows?.length){
+  box.textContent="No blocked users.";
+  return;
+ }
+
+ const ids=rows.map(r=>r.blocked_id);
+
+ const {data:ps}=await supabase.from("profiles")
+  .select("id,username,display_name,avatar_color,avatar_url")
+  .in("id",ids);
+
+ const map={};
+ (ps||[]).forEach(p=>map[p.id]=p);
+
+ rows.forEach(r=>{
+  const p=map[r.blocked_id];
+  if(!p)return;
+
+  box.append(friendRow(p,[{
+   label:"Unblock",
+   run:async()=>{
+    const {error:e}=await supabase.from("message_blocks")
+     .delete().eq("blocker_id",activeUser.id).eq("blocked_id",p.id);
+
+    if(e){
+     messagesStatus.textContent=e.message;
+     return;
+    }
+
+    messagesStatus.textContent="Unblocked @"+p.username+".";
+    await loadBlockedUsers();
+    await loadFriends();
+    await loadMessages();
+   }
+  }]));
+ });
+}
+
+$("refreshMessagesButton").onclick=async()=>{
+ await loadMessages();
+ if(activeConversationId)await openConversation(activeConversationId);
+};
+
+$("sendMessageButton").onclick=sendMessage;
+
+$("messageInput").addEventListener("keydown",e=>{
+ if(e.key==="Enter"){
+  e.preventDefault();
+  sendMessage();
+ }
+});
+
+$("blockUserButton").onclick=blockCurrentUser;
+$("reportUserButton").onclick=reportCurrentUser;
+
+function credentials(){
+ const email=$("email").value.trim();
+ const password=$("password").value;
+
+ if(!email||!password){
+  status.textContent="Enter your email and password.";
+  return null;
+ }
+
+ if(password.length<6){
+  status.textContent="Password must be at least 6 characters.";
+  return null;
+ }
+
+ return {email,password};
+}
+
+$("signupButton").onclick=async()=>{
+ const d=credentials();
+ if(!d)return;
+
+ status.textContent="Creating account...";
+
+ const {data,error}=await supabase.auth.signUp(d);
+
+ if(error){
+  status.textContent=error.message;
+  return;
+ }
+
+ if(data.session)await loadProfile(data.session.user);
+
+ status.textContent=data.session?
+  "Account created!":
+  "Account created! Check your email to confirm it.";
+};
+
+$("loginButton").onclick=async()=>{
+ const d=credentials();
+ if(!d)return;
+
+ status.textContent="Logging in...";
+
+ const {data,error}=await supabase.auth.signInWithPassword(d);
+
+ if(error){
+  status.textContent=error.message;
+  return;
+ }
+
+ await loadProfile(data.user);
+ console.log("Millora logged-in user:", data.user.id);
+ status.textContent="Logged in. Welcome to your profile!";
+};
+
+$("saveProfileButton").onclick=async()=>{
+ if(!activeUser){
+  status.textContent="Please log in first.";
+  return;
+ }
+
+ const display_name=$("profileDisplayName").value.trim();
+ const username=$("profileUsername").value.trim().toLowerCase();
+ const bio=$("profileBio").value.trim();
+ const avatar_color=$("profileAvatarColor").value;
+
+ if(!display_name){
+  status.textContent="Please enter a display name.";
+  return;
+ }
+
+ if(!/^[a-z0-9_]{3,20}$/.test(username)){
+  status.textContent="Username must be 3–20 characters using lowercase letters, numbers, or underscores.";
+  return;
+ }
+
+ status.textContent="Saving profile...";
+ $("saveProfileButton").disabled=true;
+
+ const {data:existingProfile}=await supabase.from("profiles")
+  .select("avatar_url,avatar_path")
+  .eq("id",activeUser.id).maybeSingle();
+
+ const {error}=await supabase.from("profiles").upsert({
+  id:activeUser.id,
+  username,
+  display_name,
+  bio,
+  avatar_color,
+  avatar_url:existingProfile?.avatar_url||null,
+  avatar_path:existingProfile?.avatar_path||null,
+  updated_at:new Date().toISOString()
+ });
+
+ $("saveProfileButton").disabled=false;
+
+ if(error){
+  status.textContent=error.code==="23505"?
+   "That username is already taken. Try another one.":
+   error.message;
+  return;
+ }
+
+ const {data:savedProfile}=await supabase.from("profiles")
+  .select("username,display_name,bio,avatar_color,avatar_url,avatar_path")
+  .eq("id",activeUser.id).maybeSingle();
+
+ renderProfile(savedProfile||{username,display_name,bio,avatar_color});
+ status.textContent="Profile saved!";
+
+ await loadFriends();
+ await loadMessages();
+};
+
+logoutButton.onclick=async()=>{
+ status.textContent="Logging out...";
+
+ const {error}=await supabase.auth.signOut();
+
+ if(error){
+  status.textContent=error.message;
+ }else{
+  activeConversationId=null;
+  activeConversationProfile=null;
+  composeArea.hidden=true;
+  clearImagePreview();
+
+  await loadProfile(null);
+
+  contactsList.textContent="Log in to see conversations.";
+  messagesStatus.textContent="Logged out.";
+  status.textContent="Logged out.";
+ }
+};
+
+const {data,error}=await supabase.auth.getSession();
+
+if(error){
+ status.textContent=error.message;
+}else{
+ await loadProfile(data.session?.user??null);
+ if(!data.session)status.textContent="Ready to sign in.";
+}
+
+supabase.auth.onAuthStateChange((_event,session)=>{
+ setTimeout(()=>loadProfile(session?.user??null),0);
+});
+
+}catch(error){
+ status.textContent="Account system error: "+error.message;
+}
+</script>
+</body>
+</html>
