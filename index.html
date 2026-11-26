@@ -580,6 +580,7 @@ const status=$("status"),authFields=$("authFields"),logoutButton=$("logoutButton
 try{
 const supabase=createClient(SUPABASE_URL,SUPABASE_KEY);
 let activeUser=null;
+ console.log("Millora logged-in user:", activeUser?.id);
 
 function renderProfile(profile){
  const displayName=profile?.display_name||"Millora user";
@@ -1643,6 +1644,7 @@ $("loginButton").onclick=async()=>{
  }
 
  await loadProfile(data.user);
+ console.log("Millora logged-in user:", data.user.id);
  status.textContent="Logged in. Welcome to your profile!";
 };
 
