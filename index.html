@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Millora</title>
+<title>Millea</title>
 
 <style>
 :root{--bg:#fff;--text:#202124;--muted:#70757a;--surface:#f3f4f8;--border:#e2e3ea;--accent:#8064e9}
@@ -126,7 +126,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:40px 18px}
 <button id="backButton" title="Back">←</button>
 <button id="forwardButton" title="Forward">→</button>
 <button id="refreshButton" title="Refresh">⟳</button>
-<input id="urlBar" placeholder="Enter a URL or millora:// address..." aria-label="Address bar">
+<input id="urlBar" placeholder="Enter a URL or millea:// address..." aria-label="Address bar">
 <button id="goButton">Go</button>
 </nav>
 
@@ -139,7 +139,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:40px 18px}
 <label>Website name</label>
 <input id="newSiteName" placeholder="My Website">
 <label>Custom website URL</label>
-<div style="display:flex;align-items:center;gap:5px">millora://<input id="newSiteUrl" placeholder="mywebsite"></div>
+<div style="display:flex;align-items:center;gap:5px">millea://<input id="newSiteUrl" placeholder="mywebsite"></div>
 <label>Website content</label>
 <textarea id="newSiteContent" placeholder="Write something about your website..."></textarea>
 
@@ -364,7 +364,7 @@ function renderSites(){
  sites.forEach(site=>{
   const card=document.createElement("div");card.className="site-card";
   const h=document.createElement("h3");h.textContent=site.name;
-  const p=document.createElement("p");p.textContent="millora://"+site.slug+" · "+site.visibility;
+  const p=document.createElement("p");p.textContent="millea://"+site.slug+" · "+site.visibility;
   const open=document.createElement("button");open.textContent="Open website";open.onclick=()=>openSavedSite(site.slug);
   const edit=document.createElement("button");edit.textContent="Edit website";edit.onclick=()=>openSavedSite(site.slug,true);
   const del=document.createElement("button");del.textContent="Delete";del.className="delete-site";
@@ -387,7 +387,7 @@ function openSavedSite(slug,editMode=false){
  siteViewer.style.maxWidth=design.layout==="wide"?"1100px":"900px";
 
  const back=document.createElement("button");back.textContent="← Back to Millora";back.className="secondary";back.onclick=showHome;
- const address=document.createElement("p");address.textContent="millora://"+site.slug;address.style.color="var(--muted)";
+ const address=document.createElement("p");address.textContent="Millea://"+site.slug;address.style.color="var(--muted)";
  const title=document.createElement("h1");title.textContent=site.name;
  const content=document.createElement("p");content.textContent=site.content;
  siteViewer.append(back,address,title,content);
@@ -401,7 +401,7 @@ function openSavedSite(slug,editMode=false){
  const edit=document.createElement("button");edit.textContent=editMode?"Close editor":"Edit website";edit.className="primary";edit.style.marginTop="20px";
  edit.onclick=()=>openSavedSite(slug,!editMode);siteViewer.append(edit);
  if(editMode)renderEditor(site);
- urlBar.value="millora://"+site.slug;
+ urlBar.value="Millea://"+site.slug;
 }
 
 function renderEditor(site){
@@ -563,7 +563,7 @@ $("saveWebsiteButton").onclick=()=>{
  try{saveSites(sites)}catch{alert("Couldn't save your website. Browser storage may be full.");return}
  ["newSiteName","newSiteUrl","newSiteContent"].forEach(id=>$(id).value="");
  $("siteVisibility").value="private";creator.hidden=true;renderSites();
- alert("Website created! Open millora://"+slug);
+ alert("Website created! Open Millea://"+slug);
 };
 renderSites();
 </script>
@@ -645,7 +645,7 @@ function renderProfile(profile){
  }else{
   safeSites.forEach(site=>{
    const item=document.createElement("p");
-   item.textContent=site.name+" · millora://"+site.slug;
+   item.textContent=site.name+" · Millea://"+site.slug;
    list.append(item);
   });
  }
