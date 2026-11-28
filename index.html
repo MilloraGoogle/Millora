@@ -49,6 +49,10 @@ main{text-align:center;padding:90px 18px 30px}
 #logoutButton{display:none}
 #profileArea{margin-top:18px}
 .profile-card{padding:18px;border:1px solid var(--border);border-radius:15px;background:var(--bg);margin:12px 0}
+.profile-banner{height:150px;width:100%;overflow:hidden;border-radius:12px;margin-bottom:16px;background:linear-gradient(120deg,#4d287d,#8064e9,#c2a9ff);display:grid;place-items:center;color:#fff;font-weight:bold;letter-spacing:2px}
+.profile-banner img{width:100%;height:100%;object-fit:cover;display:block}
+.hover-banner{height:76px;margin:-15px -15px 12px;border-radius:15px 15px 0 0;overflow:hidden;background:linear-gradient(120deg,#4d287d,#8064e9,#c2a9ff)}
+.hover-banner img{width:100%;height:100%;object-fit:cover;display:block}
 .profile-avatar{width:68px;height:68px;border-radius:50%;display:grid;place-items:center;overflow:hidden;color:#fff;font-size:26px;font-weight:bold;background:var(--accent);margin-bottom:12px;cursor:pointer}
 .profile-avatar img,.hover-avatar img{width:100%;height:100%;object-fit:cover;display:block}
 .profile-meta{color:var(--muted);font-size:13px;overflow-wrap:anywhere}
@@ -207,6 +211,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:40px 18px}
 
 <div id="profileArea" hidden>
 <div class="profile-card" id="profilePreview">
+<div class="profile-banner" id="profileBannerPreview"><span>YOUR BANNER</span></div>
 <div class="profile-avatar" id="profileAvatarPreview">M</div>
 <h2 id="profileNamePreview">Your name:</h2>
 <p class="profile-meta" id="profileUsernamePreview">@username:</p>
@@ -233,6 +238,13 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:40px 18px}
 <button id="removeAvatarButton" type="button" class="secondary" hidden>Remove picture</button>
 </div>
 <p class="profile-meta">PNG, JPG, WEBP, or GIF · Maximum 5 MB</p>
+<label>Profile banner</label>
+<input id="bannerFile" type="file" accept="image/png,image/jpeg,image/gif" hidden>
+<div class="actions">
+<button id="chooseBannerButton" type="button" class="secondary">Upload banner</button>
+<button id="removeBannerButton" type="button" class="secondary" hidden>Remove banner</button>
+</div>
+<p class="profile-meta">PNG, JPG, or GIF · Maximum 5 MB · Wide images work best.</p>
 <div class="actions">
 <button id="saveProfileButton" class="primary">Save profile</button>
 </div>
@@ -331,6 +343,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:40px 18px}
 <section id="siteViewer" hidden></section>
 
 <div id="profileHoverCard" class="profile-hover-card" role="tooltip" aria-hidden="true">
+<div class="hover-banner" id="hoverBanner"><img id="hoverBannerImage" alt="" hidden></div>
 <div class="hover-top">
 <div class="hover-avatar" id="hoverAvatar">M</div>
 <div>
@@ -618,6 +631,24 @@ function renderProfile(profile){
  const bio=profile?.bio||"Add a short bio about yourself.";
  const color=profile?.avatar_color||"#8064e9";
  const avatarUrl=profile?.avatar_url||"";
+ const bannerUrl=profile?.banner_url||"";
+
+ const bannerPreview=$("profileBannerPreview");
+ bannerPreview.replaceChildren();
+ if(bannerUrl){
+  const bannerImg=document.createElement("img");
+  bannerImg.src=bannerUrl;bannerImg.alt="Profile banner";
+  bannerPreview.append(bannerImg);
+ }else{
+  const bannerLabel=document.createElement("span");
+  bannerLabel.textContent="YOUR BANNER";
+  bannerPreview.append(bannerLabel);
+ }
+ $("removeBannerButton").hidden=!bannerUrl;
+
+ const hoverBannerImage=$("hoverBannerImage");
+ hoverBannerImage.src=bannerUrl;
+ hoverBannerImage.hidden=!bannerUrl;
 
  $("profileNamePreview").textContent=displayName;
  $("profileUsernamePreview").textContent="@"+username;
@@ -690,7 +721,7 @@ async function loadProfile(user){
  status.textContent="Loading your profile...";
 
  const {data,error}=await supabase.from("profiles")
-  .select("username,display_name,bio,avatar_color,avatar_url,avatar_path")
+  .select("username,display_name,bio,avatar_color,avatar_url,avatar_path,banner_url,banner_path")
   .eq("id",user.id).maybeSingle();
 
  if(error){
@@ -700,7 +731,7 @@ async function loadProfile(user){
 
  const profile=data||{
   username:"",display_name:"",bio:"",
-  avatar_color:"#8064e9",avatar_url:"",avatar_path:""
+  avatar_color:"#8064e9",avatar_url:"",avatar_path:"",banner_url:"",banner_path:""
  };
 
  $("profileDisplayName").value=profile.display_name||"";
@@ -804,7 +835,7 @@ $("avatarFile").onchange=async()=>{
   }
 
   const {data:profileData}=await supabase.from("profiles")
-   .select("username,display_name,bio,avatar_color,avatar_url,avatar_path")
+   .select("username,display_name,bio,avatar_color,avatar_url,avatar_path,banner_url,banner_path")
    .eq("id",activeUser.id).maybeSingle();
 
   renderProfile(profileData||{avatar_url:publicData.publicUrl,avatar_path:path});
@@ -839,7 +870,7 @@ $("removeAvatarButton").onclick=async()=>{
   }
 
   const {data:updated}=await supabase.from("profiles")
-   .select("username,display_name,bio,avatar_color,avatar_url,avatar_path")
+   .select("username,display_name,bio,avatar_color,avatar_url,avatar_path,banner_url,banner_path")
    .eq("id",activeUser.id).maybeSingle();
 
   renderProfile(updated||{});
@@ -848,6 +879,103 @@ $("removeAvatarButton").onclick=async()=>{
   status.textContent="Couldn't remove picture: "+error.message;
  }finally{
   $("removeAvatarButton").disabled=false;
+ }
+};
+
+/* PROFILE BANNERS */
+$("chooseBannerButton").onclick=()=>$("bannerFile").click();
+
+$("bannerFile").onchange=async()=>{
+ const file=$("bannerFile").files?.[0];
+ if(!file)return;
+ const allowed=["image/png","image/jpeg","image/gif"];
+ if(!allowed.includes(file.type)){
+  status.textContent="Choose a PNG, JPEG, or GIF banner.";
+  $("bannerFile").value="";
+  return;
+ }
+ if(file.size>5*1024*1024){
+  status.textContent="Banner must be 5 MB or smaller.";
+  $("bannerFile").value="";
+  return;
+ }
+ if(!activeUser){status.textContent="Please log in first.";return}
+ const ext={"image/png":"png","image/jpeg":"jpg","image/gif":"gif"}[file.type];
+ const path=activeUser.id+"/"+Date.now()+"-"+crypto.randomUUID()+"."+ext;
+ const button=$("chooseBannerButton");
+ button.disabled=true;
+ status.textContent="Uploading profile banner...";
+ let uploaded=false;
+ try{
+  const {data:profileExists,error:profileCheckError}=await supabase.from("profiles")
+   .select("id").eq("id",activeUser.id).maybeSingle();
+  if(profileCheckError)throw profileCheckError;
+  if(!profileExists)throw new Error("Save your profile first, then upload a banner.");
+
+  const {error:uploadError}=await supabase.storage.from("banners")
+   .upload(path,file,{contentType:file.type,upsert:false});
+  if(uploadError)throw uploadError;
+  uploaded=true;
+
+  const {data:publicData}=supabase.storage.from("banners").getPublicUrl(path);
+  const {data:oldProfile,error:readError}=await supabase.from("profiles")
+   .select("banner_path").eq("id",activeUser.id).maybeSingle();
+  if(readError)throw readError;
+
+  const {error:saveError}=await supabase.from("profiles").update({
+   banner_url:publicData.publicUrl,
+   banner_path:path,
+   updated_at:new Date().toISOString()
+  }).eq("id",activeUser.id);
+  if(saveError)throw saveError;
+
+  if(oldProfile?.banner_path){
+   const {error:removeOldError}=await supabase.storage.from("banners").remove([oldProfile.banner_path]);
+   if(removeOldError)console.warn("Old banner could not be removed:",removeOldError.message);
+  }
+
+  const {data:updated,error:reloadError}=await supabase.from("profiles")
+   .select("username,display_name,bio,avatar_color,avatar_url,avatar_path,banner_url,banner_path")
+   .eq("id",activeUser.id).maybeSingle();
+  if(reloadError)throw reloadError;
+  renderProfile(updated||{banner_url:publicData.publicUrl,banner_path:path});
+  status.textContent="Profile banner uploaded!";
+ }catch(error){
+  if(uploaded)await supabase.storage.from("banners").remove([path]);
+  status.textContent="Banner upload failed: "+error.message;
+ }finally{
+  button.disabled=false;
+  $("bannerFile").value="";
+ }
+};
+
+$("removeBannerButton").onclick=async()=>{
+ if(!activeUser)return;
+ const button=$("removeBannerButton");
+ button.disabled=true;
+ status.textContent="Removing profile banner...";
+ try{
+  const {data:profile,error:readError}=await supabase.from("profiles")
+   .select("banner_path").eq("id",activeUser.id).maybeSingle();
+  if(readError)throw readError;
+  const {error:updateError}=await supabase.from("profiles").update({
+   banner_url:null,banner_path:null,updated_at:new Date().toISOString()
+  }).eq("id",activeUser.id);
+  if(updateError)throw updateError;
+  if(profile?.banner_path){
+   const {error:removeError}=await supabase.storage.from("banners").remove([profile.banner_path]);
+   if(removeError)console.warn("Banner record cleared, but stored file could not be removed:",removeError.message);
+  }
+  const {data:updated,error:reloadError}=await supabase.from("profiles")
+   .select("username,display_name,bio,avatar_color,avatar_url,avatar_path,banner_url,banner_path")
+   .eq("id",activeUser.id).maybeSingle();
+  if(reloadError)throw reloadError;
+  renderProfile(updated||{});
+  status.textContent="Profile banner removed.";
+ }catch(error){
+  status.textContent="Couldn't remove banner: "+error.message;
+ }finally{
+  button.disabled=false;
  }
 };
 
@@ -1703,7 +1831,7 @@ $("saveProfileButton").onclick=async()=>{
  $("saveProfileButton").disabled=true;
 
  const {data:existingProfile}=await supabase.from("profiles")
-  .select("avatar_url,avatar_path")
+  .select("avatar_url,avatar_path,banner_url,banner_path")
   .eq("id",activeUser.id).maybeSingle();
 
  const {error}=await supabase.from("profiles").upsert({
@@ -1714,6 +1842,8 @@ $("saveProfileButton").onclick=async()=>{
   avatar_color,
   avatar_url:existingProfile?.avatar_url||null,
   avatar_path:existingProfile?.avatar_path||null,
+  banner_url:existingProfile?.banner_url||null,
+  banner_path:existingProfile?.banner_path||null,
   updated_at:new Date().toISOString()
  });
 
@@ -1727,7 +1857,7 @@ $("saveProfileButton").onclick=async()=>{
  }
 
  const {data:savedProfile}=await supabase.from("profiles")
-  .select("username,display_name,bio,avatar_color,avatar_url,avatar_path")
+  .select("username,display_name,bio,avatar_color,avatar_url,avatar_path,banner_url,banner_path")
   .eq("id",activeUser.id).maybeSingle();
 
  renderProfile(savedProfile||{username,display_name,bio,avatar_color});
